@@ -36,7 +36,7 @@ python test.py --dataset Synapse --vit_name R50-ViT-B_16
 
 ```bibtex
 @article{chen2021transunet,
-  title={TransUNet:TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation},
+  title={TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation},
   author={Chen, Jieneng and Lu, Yongyi and Yu, Qihang and Luo, Xiangde and Adeli, Ehsan and Wang, Yan and Lu, Le and Yuille, Alan L., and Zhou, Yuyin},
   journal={arXiv},
   year={2021}
