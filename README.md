@@ -15,7 +15,11 @@ mv {MODEL_NAME}.npz ../model/vit_checkpoint/imagenet21k/{MODEL_NAME}.npz
 
 Please go to ["./datasets/README.md"](datasets/README.md) for details, or please send an Email to jienengchen01 AT gmail.com to request the preprocessed data.
 
-### 3. Train/Test
+### 3. Environment
+
+Please prepare an environment with python=3.7, and then using the command "pip install -r requriements.txt" for the dependencies.
+
+### 4. Train/Test
 
 - run the train script on synapse dataset
 
