@@ -1,18 +1,3 @@
-# Copyright 2020 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-
 import ml_collections
 
 def get_s16_config():
@@ -35,9 +20,6 @@ def get_s16_config():
     config.decoder_channels = (256, 128, 64, 16)  # (256, 128, 64, 32, 16)
     config.n_classes = 2
     config.activation = 'softmax' # One of [``sigmoid``, ``softmax``, ``logsoftmax``, ``identity``, callable, None]
-    # for tsne
-    config.get_encoded = False
-    config.get_res_encoded = False
     return config
 
 def get_b16_config():
@@ -61,9 +43,6 @@ def get_b16_config():
     config.decoder_channels = (256, 128, 64, 16)  # (256, 128, 64, 32, 16)
     config.n_classes = 2
     config.activation = 'softmax' # One of [``sigmoid``, ``softmax``, ``logsoftmax``, ``identity``, callable, None]
-    # for tsne
-    config.get_encoded = False
-    config.get_res_encoded = False
     return config
 
 
@@ -99,9 +78,6 @@ def get_r50_b16_config():
     config.n_classes = 2
     config.n_skip = 3
     config.activation = 'softmax'
-    # for tsne
-    config.get_encoded = False
-    config.get_res_encoded = False
 
     return config
 
@@ -135,11 +111,6 @@ def get_l16_config():
     config.decoder_channels = (256, 128, 64, 16)  # (256, 128, 64, 32, 16)
     config.n_classes = 2
     config.activation = 'softmax' # One of [``sigmoid``, ``softmax``, ``logsoftmax``, ``identity``, callable, None]
-    # ds:
-    config.ds_layers = [4, 8]
-    # for tsne
-    config.get_encoded = False
-    config.get_res_encoded = False
     return config
 
 
@@ -159,9 +130,6 @@ def get_r50_l16_config():
     config.skip_channels = [512, 256, 64, 16]  # according ResNetV2
     config.n_classes = 2
     config.activation = 'softmax'
-    # for tsne
-    config.get_encoded = False
-    config.get_res_encoded = False
     return config
 
 
@@ -169,9 +137,6 @@ def get_l32_config():
     """Returns the ViT-L/32 configuration."""
     config = get_l16_config()
     config.patches.size = (32, 32)
-    # for tsne
-    config.get_encoded = False
-    config.get_res_encoded = False
     return config
 
 
@@ -189,7 +154,4 @@ def get_h14_config():
     config.classifier = 'token'
     config.representation_size = None
 
-    # for tsne
-    config.get_encoded = False
-    config.get_res_encoded = False
     return config
