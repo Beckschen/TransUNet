@@ -17,7 +17,7 @@ Please go to ["./datasets/README.md"](datasets/README.md) for details, or please
 
 ### 3. Environment
 
-Please prepare an environment with python=3.7, and then using the command "pip install -r requriements.txt" for the dependencies.
+Please prepare an environment with python=3.7, and then use the command "pip install -r requriements.txt" for the dependencies.
 
 ### 4. Train/Test
 
