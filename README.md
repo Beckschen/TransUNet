@@ -36,6 +36,7 @@ python test.py --dataset Synapse --vit_name R50-ViT-B_16
 ## Reference
 * [Google ViT](https://github.com/google-research/vision_transformer)
 * [ViT-pytorch](https://github.com/jeonsworld/ViT-pytorch)
+* [segmentation_models.pytorch](https://github.com/qubvel/segmentation_models.pytorch)
 
 ## Citations
 
