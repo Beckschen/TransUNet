@@ -21,13 +21,13 @@ Please prepare an environment with python=3.7, and then use the command "pip ins
 
 ### 4. Train/Test
 
-- run the train script on synapse dataset. The batch size can be reduced to 12 or 6 to save memory, and both can reach similar performance.
+- Run the train script on synapse dataset. The batch size can be reduced to 12 or 6 to save memory, and both can reach similar performance.
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python train.py --dataset Synapse --vit_name R50-ViT-B_16
 ```
 
-- run the test script on synapse dataset
+- Run the test script on synapse dataset. It supports testing for both 2D images and 3D volumes.
 
 ```bash
 python test.py --dataset Synapse --vit_name R50-ViT-B_16
