@@ -21,7 +21,7 @@ Please prepare an environment with python=3.7, and then use the command "pip ins
 
 ### 4. Train/Test
 
-- Run the train script on synapse dataset. The batch size can be reduced to 12 or 6 to save memory, and both can reach similar performance.
+- Run the train script on synapse dataset. The batch size can be reduced to 12 or 6 to save memory (please also decrease the base_lr linearly), and both can reach similar performance.
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python train.py --dataset Synapse --vit_name R50-ViT-B_16
