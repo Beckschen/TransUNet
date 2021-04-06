@@ -19,7 +19,7 @@ parser.add_argument('--list_dir', type=str,
 parser.add_argument('--num_classes', type=int,
                     default=9, help='output channel of network')
 parser.add_argument('--max_iterations', type=int,
-                    default=30000, help='maximum epoch number to train')
+                    default=30000, help='maximum iteration number to train')
 parser.add_argument('--max_epochs', type=int,
                     default=150, help='maximum epoch number to train')
 parser.add_argument('--batch_size', type=int,
@@ -72,12 +72,12 @@ if __name__ == "__main__":
     snapshot_path += '_' + args.vit_name
     snapshot_path = snapshot_path + '_skip' + str(args.n_skip)
     snapshot_path = snapshot_path + '_vitpatch' + str(args.vit_patches_size) if args.vit_patches_size!=16 else snapshot_path
-    snapshot_path = snapshot_path+'_'+str(args.max_iterations)[0:2]+'k' if args.max_iterations != 30000 else snapshot_path
-    snapshot_path = snapshot_path + '_epo' +str(args.max_epochs) if args.max_epochs != 30 else snapshot_path
-    snapshot_path = snapshot_path+'_bs'+str(args.batch_size)
+    snapshot_path = snapshot_path +'_'+ str(args.max_iterations)[0:2]+'k' if args.max_iterations != 30000 else snapshot_path
+    snapshot_path = snapshot_path + '_epo' + str(args.max_epochs) if args.max_epochs != 30 else snapshot_path
+    snapshot_path = snapshot_path + '_bs' + str(args.batch_size)
     snapshot_path = snapshot_path + '_lr' + str(args.base_lr) if args.base_lr != 0.01 else snapshot_path
-    snapshot_path = snapshot_path + '_'+str(args.img_size)
-    snapshot_path = snapshot_path + '_s'+str(args.seed) if args.seed!=1234 else snapshot_path
+    snapshot_path = snapshot_path + '_' + str(args.img_size)
+    snapshot_path = snapshot_path + '_s' + str(args.seed) if args.seed!=1234 else snapshot_path
 
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
