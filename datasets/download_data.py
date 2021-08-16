@@ -9,9 +9,6 @@ def main(args: argparse.Namespace):
     entity = syn.get(entity=args.entity, downloadLocation=args.download_dir)
     print("File downloaded successfully")
 
-    # filepath = entity.path
-    # print(f"File was saved to {filepath}")
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
