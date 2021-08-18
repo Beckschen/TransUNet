@@ -12,7 +12,7 @@ from tqdm import tqdm
 def get_case_ids_from_list(dataset_list_path: Path) -> List[str]:
     with open(dataset_list_path, "r") as f:
         slices = f.readlines()
-    case_ids = sorted(list(set([s.split("_")[0][4:] for s in slices])))
+    case_ids = sorted(list(set([s.split("_")[0][4:].rstrip() for s in slices])))
     return case_ids
 
 
