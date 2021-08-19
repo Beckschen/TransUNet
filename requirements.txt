@@ -10,3 +10,4 @@ SimpleITK
 scipy
 h5py
 nibabel
+synapseclient
