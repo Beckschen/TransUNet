@@ -8,7 +8,6 @@ import numpy
 from tqdm import tqdm
 
 
-# TODO: specify in README which exact dataset has to be downloaded
 def get_case_ids_from_list(dataset_list_path: Path) -> List[str]:
     with open(dataset_list_path, "r") as f:
         slices = f.readlines()
