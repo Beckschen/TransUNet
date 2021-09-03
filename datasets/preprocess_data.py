@@ -44,8 +44,8 @@ def main(args: argparse.Namespace):
             clipped_image_data = numpy.clip(image_data, *args.clip)
             normalised_image_data = (clipped_image_data - args.clip[0]) / (args.clip[1] - args.clip[0])
 
-            # Reorders data so that the channel dimension is at the front for easier iteration in the subsequent
-            # for-loop
+            # Reorders data so that the channel/slice dimension is in front. Makes iteration easier when processing
+            # slices and when using the h5 file for testing
             transposed_image_data = numpy.transpose(normalised_image_data, (2, 0, 1))
             transposed_label_data = numpy.transpose(label_data, (2, 0, 1))
 
@@ -53,9 +53,9 @@ def main(args: argparse.Namespace):
             for i, (image_slice, label_slice) in tqdm(enumerate(zip(transposed_image_data, transposed_label_data)),
                                                       desc="Processing slices", leave=False):
                 out_filename = args.target_dataset_dir / f"Synapse/train_npz/case{case_id}_slice{i:03d}.npz"
+
                 if not args.overwrite and out_filename.exists():  # Do not overwrite data unless flag is set
                     continue
-
                 if not out_filename.parent.exists():
                     out_filename.parent.mkdir(exist_ok=True, parents=True)
                 numpy.savez(out_filename, image=image_slice, label=label_slice)
@@ -67,8 +67,8 @@ def main(args: argparse.Namespace):
             if not h5_filename.parent.exists():
                 h5_filename.parent.mkdir(exist_ok=True, parents=True)
             with h5py.File(h5_filename, "w") as f:
-                f.create_dataset("image", data=normalised_image_data)
-                f.create_dataset("label", data=label_data)
+                f.create_dataset("image", data=transposed_image_data)
+                f.create_dataset("label", data=transposed_label_data)
 
 
 if __name__ == "__main__":
