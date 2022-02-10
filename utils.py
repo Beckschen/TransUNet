@@ -4,7 +4,11 @@ from medpy import metric
 from scipy.ndimage import zoom
 import torch.nn as nn
 import SimpleITK as sitk
-
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+import cv2
+from matplotlib import patches
 
 class DiceLoss(nn.Module):
     def __init__(self, n_classes):
@@ -100,3 +104,103 @@ def test_single_volume(image, label, net, classes, patch_size=[256, 256], test_s
         sitk.WriteImage(img_itk, test_save_path + '/'+ case + "_img.nii.gz")
         sitk.WriteImage(lab_itk, test_save_path + '/'+ case + "_gt.nii.gz")
     return metric_list
+
+def create_visual(img, label, color_code, path, thicnkess = -1):
+        """
+        作用-生成肺部CT切片及标注的可视化文件
+        img-浮点数类型数组
+        label-布尔型类型数组，大小与img相同
+        color_code-颜色编码，1 红，2 绿，3蓝
+        thickness-标注线宽度，-1为填充方式
+        path-可视化图片存储的绝对路径
+        """
+        # 1. 为了可视化结果更清晰，调窗
+        lungwin = [-1200,600]
+        img = (img - lungwin[0]) / (lungwin[1] - lungwin[0])
+        img[img > 1] = 1
+        img[img < 0] = 0
+        img = (img * 255).astype(np.uint8)
+
+        # 2. 图像绘制        
+        fig, ax = plt.subplots()
+        color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    
+        # 3. 标注绘制
+        if color_code == 1:
+            color = (0, 0, 255)
+        elif color_code == 2:
+            color = (255, 255, 0)
+        elif color_code == 3:
+            color = (0, 255, 0)
+        else :
+            color = (0, 255, 255)
+        label = label.astype(np.uint8)
+        if np.max(label) != 0 : 
+            contour, hierarchy = cv2.findContours(label, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(color_img, contours = contour, contourIdx = -1, color = color, thickness = thicnkess)                       
+        plt.imshow(color_img)
+        plt.axis("off")
+        # 去除图像周围的白边
+        height, width, channels = color_img.shape
+        # 如果dpi=300，那么图像大小=height*width
+        fig.set_size_inches(width / 100.0 / 3.0, height / 100.0 / 3.0)
+        plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        plt.subplots_adjust(top=1, bottom=0, left=0, right=1, hspace=0, wspace=0)
+        plt.margins(0, 0)
+
+        # dpi是设置清晰度的，大于300就很清晰了，但是保存下来的图片很大
+        plt.savefig(path, dpi = 300)
+        plt.close()
+
+def create_visual_muti_label(img, label, path, thicnkess = -1):
+        """
+        特异性处理函数，不具备通用性
+        作用-生成肺部CT切片及标注的可视化文件
+        img-浮点数类型数组
+        label-布尔型类型数组，比img高一维度代表不同的标注
+        color_code-颜色编码，1 红，2 绿，3蓝
+        thickness-标注线宽度，-1为填充方式
+        path-可视化图片存储的绝对路径
+        """
+        # 1. 为了可视化结果更清晰，调窗
+        lungwin = [-1200,600]
+        img = (img - lungwin[0]) / (lungwin[1] - lungwin[0])
+        img[img > 1] = 1
+        img[img < 0] = 0
+        img = (img * 255).astype(np.uint8)
+
+        # 2. 图像绘制        
+        fig, ax = plt.subplots()
+        color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    
+        # 3. 标注绘制
+        for i in range(0,4):
+            if i == 0:
+                color = (0, 0, 255)
+            elif i == 1:
+                color = (255, 255, 0)
+            elif i == 2:
+                color = (0, 255, 0)
+            else :
+                color = (0, 255, 255)
+            label_slice = label[:, :, i]
+            label_slice = label_slice.astype(np.uint8)
+            if np.max(label_slice) != 0 : 
+                contour, hierarchy = cv2.findContours(label_slice, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                cv2.drawContours(color_img, contours = contour, contourIdx = -1, color = color, thickness = thicnkess)                       
+        plt.imshow(color_img)
+        plt.axis("off")
+        # 去除图像周围的白边
+        height, width, channels = color_img.shape
+        # 如果dpi=300，那么图像大小=height*width
+        fig.set_size_inches(width / 100.0 / 3.0, height / 100.0 / 3.0)
+        plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        plt.subplots_adjust(top=1, bottom=0, left=0, right=1, hspace=0, wspace=0)
+        plt.margins(0, 0)
+
+        # dpi是设置清晰度的，大于300就很清晰了，但是保存下来的图片很大
+        plt.savefig(path, dpi = 300)
+        plt.close()
+
