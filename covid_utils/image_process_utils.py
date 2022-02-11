@@ -30,4 +30,6 @@ def create_mask(mask):
     """
     将mask不同类型的标注当做一个类型进行处理，并降维
     """
-    return mask
+    new_mask = mask[:, :, 0]
+    new_mask[mask[:, :, 1] == True] = True
+    return new_mask

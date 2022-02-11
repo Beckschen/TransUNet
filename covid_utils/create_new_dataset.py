@@ -1,5 +1,6 @@
+import logging
 import numpy as np
-import os
+import os,sys
 from tqdm import tqdm
 import image_process_utils
 
@@ -18,6 +19,9 @@ datasetB = np.load(setb_data_path)
 masksetB = np.load(setb_mask_path)
 
 def main():
+    logging.basicConfig(filename= restore_path + "/log.txt", level=logging.INFO,
+                        format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     imgs = []
     masks = []
     for i in tqdm(range(masksetA.shape[0])):
@@ -26,15 +30,18 @@ def main():
             img_slice = image_process_utils.create_img(datasetA[i, :, :, 0])
             imgs.append(img_slice)
             masks.append(mask_slice)
+    logging.info("遍历数据集A后有效切片数为{}".format(len(imgs)))
     for j in tqdm(range(masksetB.shape[0])):
         mask_slice = image_process_utils.create_mask(masksetB[j, :, :, 0 : 2])
         if True in mask_slice:
             img_slice = image_process_utils.create_img(datasetB[j, :, :, 0])
             imgs.append(img_slice)
             masks.append(mask_slice)
+    logging.info("遍历数据集B后有效切片数为{}".format(len(imgs)))
     imgs = np.array(imgs)
     masks = np.array(masks)
-    pass
+    np.save(os.path.join(restore_path, "imgs.npy"), imgs)
+    np.save(os.path.join(restore_path, "masks.npy"), masks)
 
 if __name__ == "__main__":
     main()

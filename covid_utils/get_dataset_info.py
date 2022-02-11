@@ -2,6 +2,7 @@ import os.path,sys,tqdm
 sys.path.append("..")
 import numpy as np
 from utils import create_visual, create_visual_muti_label
+import image_process_utils
 
 # 数据集路径信息
 dataset_root_path = "/home/wubo/Dataset"
@@ -48,8 +49,11 @@ def print_dataset_label_info(labelset) :
 
 def test1():
     visual_test_path = "/home/wubo/BiYeExp/TempTest/"
-    create_visual(datasetA[20, :, :, 0], masksetA[20, :, :, 0], 1, visual_test_path + "test1.png", 1)
-    create_visual_muti_label(datasetA[20, :, :, 0], masksetA[20, :, :], visual_test_path + "label.png", -1)
+    create_visual(datasetA[20, :, :, 0], masksetA[20, :, :, 0], 1, visual_test_path + "1.png", 1)
+    create_visual_muti_label(datasetA[20, :, :, 0], masksetA[20, :, :], visual_test_path + "2.png", -1)
+    img = image_process_utils.create_img(datasetA[20, :, :, 0])
+    mask = image_process_utils.create_mask(masksetA[20, :, :])
+    create_visual(datasetA[20, :, :, 0], mask, 1, visual_test_path + "3.png", 1)
 
 def create_dataset_visual():
     """
