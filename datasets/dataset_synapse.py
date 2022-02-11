@@ -73,3 +73,15 @@ class Synapse_dataset(Dataset):
             sample = self.transform(sample)
         sample['case_name'] = self.sample_list[idx].strip('\n')
         return sample
+
+def test() :
+    list_path = "/home/wubo/BiYeExp/TransUNet/lists/lists_Synapse/train.txt"
+    sample_list = open(list_path).readlines()
+    slice_name = sample_list[30].strip('\n')
+    data_path = os.path.join("../data/Synapse/train_npz", slice_name+'.npz')
+    print(slice_name)
+    print(data_path)
+    pass
+
+if __name__ == "__main__" :
+    test()
