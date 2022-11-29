@@ -23,7 +23,6 @@ def preprocess_train_image(image_files: str, label_files: str) -> None:
     os.makedirs(f"{args.dst_path}/train_npz", exist_ok=True)
     
     a_min, a_max = -125, 275
-    b_min, b_max = 0.0, 1.0
     
     pbar = tqdm(zip(image_files, label_files), total=len(image_files))
     for image_file, label_file in pbar:
@@ -53,7 +52,6 @@ def preprocess_valid_image(image_files: str, label_files: str) -> None:
     os.makedirs(f"{args.dst_path}/test_vol_h5", exist_ok=True)
     
     a_min, a_max = -125, 275
-    b_min, b_max = 0.0, 1.0
 
     pbar = tqdm(zip(image_files, label_files), total=len(image_files))
     for image_file, label_file in pbar:
