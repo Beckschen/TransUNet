@@ -1,6 +1,10 @@
 # TransUNet
 This repo holds code for [TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation](https://arxiv.org/pdf/2102.04306.pdf)
 
+## 📰 News
+
+- [10/15/2023] 🔥 [3D version of TransUNet](https://github.com/Beckschen/3D-TransUNet/tree/main) is out! 
+
 ## Usage
 
 ### 1. Download Google pre-trained ViT models
