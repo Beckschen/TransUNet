@@ -3,7 +3,7 @@ This repo holds code for [TransUNet: Transformers Make Strong Encoders for Medic
 
 ## 📰 News
 
-- [10/15/2023] 🔥 3D version of TransUNet is out! Please take a look at the [code](https://github.com/Beckschen/3D-TransUNet/tree/main) and [paper](https://arxiv.org/abs/2310.07781).
+- [10/15/2023] 🔥 3D version of TransUNet is out! Our 3D TransUNet surpasses nn-UNet with 88.11% Dice score on the BTCV dataset and outperforms the top-1 solution in the BraTs 2021 challenge. Please take a look at the [code](https://github.com/Beckschen/3D-TransUNet/tree/main) and [paper](https://arxiv.org/abs/2310.07781).
 
 ## Usage
 
