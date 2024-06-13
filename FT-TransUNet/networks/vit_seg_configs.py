@@ -11,6 +11,9 @@ def get_b16_config():
     config.transformer.num_layers = 12
     config.transformer.attention_dropout_rate = 0.0
     config.transformer.dropout_rate = 0.1
+    config.focusing_factor = 3
+    config.qkv_bias = True
+    config.kernel_size = 5
 
     config.classifier = 'seg'
     config.representation_size = None

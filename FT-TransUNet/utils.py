@@ -35,7 +35,8 @@ class DiceLoss(nn.Module):
         target = self._one_hot_encoder(target)
         if weight is None:
             weight = [1] * self.n_classes
-        assert inputs.size() == target.size(), 'predict {} & target {} shape do not match'.format(inputs.size(), target.size())
+        assert inputs.size() == target.size(), 'predict {} & target {} shape do not match'.format(inputs.size(),
+                                                                                                  target.size())
         class_wise_dice = []
         loss = 0.0
         for i in range(0, self.n_classes):
@@ -48,11 +49,11 @@ class DiceLoss(nn.Module):
 def calculate_metric_percase(pred, gt):
     pred[pred > 0] = 1
     gt[gt > 0] = 1
-    if pred.sum() > 0 and gt.sum()>0:
+    if pred.sum() > 0 and gt.sum() > 0:
         dice = metric.binary.dc(pred, gt)
         hd95 = metric.binary.hd95(pred, gt)
         return dice, hd95
-    elif pred.sum() > 0 and gt.sum()==0:
+    elif pred.sum() > 0 and gt.sum() == 0:
         return 1, 0
     else:
         return 0, 0
@@ -96,7 +97,7 @@ def test_single_volume(image, label, net, classes, patch_size=[256, 256], test_s
         img_itk.SetSpacing((1, 1, z_spacing))
         prd_itk.SetSpacing((1, 1, z_spacing))
         lab_itk.SetSpacing((1, 1, z_spacing))
-        sitk.WriteImage(prd_itk, test_save_path + '/'+case + "_pred.nii.gz")
-        sitk.WriteImage(img_itk, test_save_path + '/'+ case + "_img.nii.gz")
-        sitk.WriteImage(lab_itk, test_save_path + '/'+ case + "_gt.nii.gz")
+        sitk.WriteImage(prd_itk, test_save_path + '/' + case + "_pred.nii.gz")
+        sitk.WriteImage(img_itk, test_save_path + '/' + case + "_img.nii.gz")
+        sitk.WriteImage(lab_itk, test_save_path + '/' + case + "_gt.nii.gz")
     return metric_list

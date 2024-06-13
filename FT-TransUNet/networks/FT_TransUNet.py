@@ -23,14 +23,14 @@ from .vit_seg_modeling_resnet_skip import ResNetV2
 logger = logging.getLogger(__name__)
 
 
-ATTENTION_Q = "MultiHeadDotProductAttention_1/query"
-ATTENTION_K = "MultiHeadDotProductAttention_1/key"
-ATTENTION_V = "MultiHeadDotProductAttention_1/value"
-ATTENTION_OUT = "MultiHeadDotProductAttention_1/out"
-FC_0 = "MlpBlock_3/Dense_0"
-FC_1 = "MlpBlock_3/Dense_1"
-ATTENTION_NORM = "LayerNorm_0"
-MLP_NORM = "LayerNorm_2"
+ATTENTION_Q = "MultiHeadDotProductAttention_1/query/"
+ATTENTION_K = "MultiHeadDotProductAttention_1/key/"
+ATTENTION_V = "MultiHeadDotProductAttention_1/value/"
+ATTENTION_OUT = "MultiHeadDotProductAttention_1/out/"
+FC_0 = "MlpBlock_3/Dense_0/"
+FC_1 = "MlpBlock_3/Dense_1/"
+ATTENTION_NORM = "LayerNorm_0/"
+MLP_NORM = "LayerNorm_2/"
 
 
 def np2th(weights, conv=False):
@@ -46,53 +46,92 @@ def swish(x):
 
 ACT2FN = {"gelu": torch.nn.functional.gelu, "relu": torch.nn.functional.relu, "swish": swish}
 
+class FocusedLinearAttention(nn.Module):
+    """ Window based multi-head self attention (W-MSA) module with relative position bias.
+    It supports both of shifted and non-shifted window.
 
-class Attention(nn.Module):
+    Args:
+        dim (int): Number of input channels.
+        num_heads (int): Number of attention heads.
+        qkv_bias (bool, optional):  If True, add a learnable bias to query, key, value. Default: True
+        attn_drop (float, optional): Dropout ratio of attention weight. Default: 0.0
+        proj_drop (float, optional): Dropout ratio of output. Default: 0.0
+    """
+
     def __init__(self, config, vis):
-        super(Attention, self).__init__()
+        super().__init__()
         self.vis = vis
-        self.num_attention_heads = config.transformer["num_heads"]
-        self.attention_head_size = int(config.hidden_size / self.num_attention_heads)
-        self.all_head_size = self.num_attention_heads * self.attention_head_size
+        self.dim = config.hidden_size
+        self.num_heads = config.transformer["num_heads"]
+        head_dim = self.dim // self.num_heads
 
-        self.query = Linear(config.hidden_size, self.all_head_size)
-        self.key = Linear(config.hidden_size, self.all_head_size)
-        self.value = Linear(config.hidden_size, self.all_head_size)
+        self.focusing_factor = config.focusing_factor
+        self.qkv = nn.Linear(self.dim, self.dim * 3, bias=config.qkv_bias)
+        self.attn_drop = nn.Dropout(config.transformer["attention_dropout_rate"])
+        self.proj = nn.Linear(self.dim, self.dim)
+        self.proj_drop = nn.Dropout(config.transformer["attention_dropout_rate"])
 
-        self.out = Linear(config.hidden_size, config.hidden_size)
-        self.attn_dropout = Dropout(config.transformer["attention_dropout_rate"])
-        self.proj_dropout = Dropout(config.transformer["attention_dropout_rate"])
+        self.softmax = nn.Softmax(dim=-1)
 
-        self.softmax = Softmax(dim=-1)
+        self.dwc = nn.Conv2d(in_channels=head_dim, out_channels=head_dim,
+                             kernel_size=config.kernel_size, groups=head_dim,
+                             padding=config.kernel_size // 2)
+        self.scale = nn.Parameter(torch.zeros(size=(1, 1, self.dim)))
 
-    def transpose_for_scores(self, x):
-        new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
-        x = x.view(*new_x_shape)
-        return x.permute(0, 2, 1, 3)
+        print('Linear Attention with focusing factor {} and kernel size {}'.format(self.focusing_factor, config.kernel_size))
 
-    def forward(self, hidden_states):
-        mixed_query_layer = self.query(hidden_states)
-        mixed_key_layer = self.key(hidden_states)
-        mixed_value_layer = self.value(hidden_states)
+    def forward(self, x):
+        """
+        Args:
+            x: input features with shape of (B, N, C)
+        """
+        B, N, C = x.shape
+        qkv = self.qkv(x).reshape(B, N, 3, C).permute(2, 0, 1, 3)
+        q, k, v = qkv.unbind(0)
 
-        query_layer = self.transpose_for_scores(mixed_query_layer)
-        key_layer = self.transpose_for_scores(mixed_key_layer)
-        value_layer = self.transpose_for_scores(mixed_value_layer)
+        focusing_factor = self.focusing_factor
+        kernel_function = nn.ReLU()
 
-        attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
-        attention_scores = attention_scores / math.sqrt(self.attention_head_size)
-        attention_probs = self.softmax(attention_scores)
-        weights = attention_probs if self.vis else None
-        attention_probs = self.attn_dropout(attention_probs)
+        q = kernel_function(q) + 1e-6
+        k = kernel_function(k) + 1e-6
+        scale = nn.Softplus()(self.scale)
+        q = q / scale
+        k = k / scale
 
-        context_layer = torch.matmul(attention_probs, value_layer)
-        context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
-        new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
-        context_layer = context_layer.view(*new_context_layer_shape)
-        attention_output = self.out(context_layer)
-        attention_output = self.proj_dropout(attention_output)
-        return attention_output, weights
+        q_norm = q.norm(dim=-1, keepdim=True)
+        k_norm = k.norm(dim=-1, keepdim=True)
+        q = q ** focusing_factor
+        k = k ** focusing_factor
+        q = (q / q.norm(dim=-1, keepdim=True)) * q_norm
+        k = (k / k.norm(dim=-1, keepdim=True)) * k_norm
 
+        q = q.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3)
+        k = k.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3)
+        v = v.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3)
+
+        z = 1 / (q @ k.mean(dim=-2, keepdim=True).transpose(-2, -1) + 1e-6)
+        kv = (k.transpose(-2, -1) * (N ** -0.5)) @ (v * (N ** -0.5))
+        x = q @ kv * z
+
+        # If visualization is enabled, store attention weights
+        if self.vis:
+            weights = x.mean(dim=1)
+        else:
+            weights = None
+
+        H = W = int(N ** 0.5)
+        x = x.transpose(1, 2).reshape(B, N, C)
+        v = v.reshape(B * self.num_heads, H, W, -1).permute(0, 3, 1, 2)
+        # v = v.reshape(B * self.num_heads, N, -1).permute(0, 2, 1).reshape(B, C, N).permute(0, 2, 1)
+        # print(x.shape)
+        # print(self.dwc(v).reshape(B, N, C).shape)
+        # print(self.dwc(v).reshape(B, N, C).permute(0, 2, 1).shape)
+        x = x + self.dwc(v).reshape(B, N, C)
+        # x的shape和dwc后的shape。以及源码中对dwc为什么进行了permute
+
+        x = self.proj(x)
+        x = self.proj_drop(x)
+        return x, weights
 
 class Mlp(nn.Module):
     def __init__(self, config):
@@ -132,7 +171,7 @@ class Embeddings(nn.Module):
             grid_size = config.patches["grid"]
             patch_size = (img_size[0] // 16 // grid_size[0], img_size[1] // 16 // grid_size[1])
             patch_size_real = (patch_size[0] * 16, patch_size[1] * 16)
-            n_patches = (img_size[0] // patch_size_real[0]) * (img_size[1] // patch_size_real[1])  
+            n_patches = (img_size[0] // patch_size_real[0]) * (img_size[1] // patch_size_real[1])
             self.hybrid = True
         else:
             patch_size = _pair(config.patches["size"])
@@ -160,6 +199,7 @@ class Embeddings(nn.Module):
         x = x.flatten(2)
         x = x.transpose(-1, -2)  # (B, n_patches, hidden)
 
+        print(x.shape, self.position_embeddings.shape)
         embeddings = x + self.position_embeddings
         embeddings = self.dropout(embeddings)
         return embeddings, features
@@ -172,7 +212,7 @@ class Block(nn.Module):
         self.attention_norm = LayerNorm(config.hidden_size, eps=1e-6)
         self.ffn_norm = LayerNorm(config.hidden_size, eps=1e-6)
         self.ffn = Mlp(config)
-        self.attn = Attention(config, vis)
+        self.attn = FocusedLinearAttention(config, vis)
 
     def forward(self, x):
         h = x
@@ -187,7 +227,7 @@ class Block(nn.Module):
         return x, weights
 
     def load_from(self, weights, n_block):
-        ROOT = f"Transformer/encoderblock_{n_block}"
+        ROOT = f"Transformer/encoderblock_{n_block}/"
         with torch.no_grad():
             query_weight = np2th(weights[pjoin(ROOT, ATTENTION_Q, "kernel")]).view(self.hidden_size, self.hidden_size).t()
             key_weight = np2th(weights[pjoin(ROOT, ATTENTION_K, "kernel")]).view(self.hidden_size, self.hidden_size).t()
@@ -199,14 +239,10 @@ class Block(nn.Module):
             value_bias = np2th(weights[pjoin(ROOT, ATTENTION_V, "bias")]).view(-1)
             out_bias = np2th(weights[pjoin(ROOT, ATTENTION_OUT, "bias")]).view(-1)
 
-            self.attn.query.weight.copy_(query_weight)
-            self.attn.key.weight.copy_(key_weight)
-            self.attn.value.weight.copy_(value_weight)
-            self.attn.out.weight.copy_(out_weight)
-            self.attn.query.bias.copy_(query_bias)
-            self.attn.key.bias.copy_(key_bias)
-            self.attn.value.bias.copy_(value_bias)
-            self.attn.out.bias.copy_(out_bias)
+            self.attn.qkv.weight.copy_(torch.cat([query_weight, key_weight, value_weight], dim=0))
+            self.attn.qkv.bias.copy_(torch.cat([query_bias, key_bias, value_bias], dim=0))
+            self.attn.proj.weight.copy_(out_weight)
+            self.attn.proj.bias.copy_(out_bias)
 
             mlp_weight_0 = np2th(weights[pjoin(ROOT, FC_0, "kernel")]).t()
             mlp_weight_1 = np2th(weights[pjoin(ROOT, FC_1, "kernel")]).t()

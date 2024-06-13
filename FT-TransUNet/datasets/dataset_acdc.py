@@ -46,7 +46,7 @@ class RandomGenerator(object):
         return sample
 
 
-class Synapse_dataset(Dataset):
+class ACDC_dataset(Dataset):
     def __init__(self, base_dir, list_dir, split, transform=None):
         self.transform = transform  # using transform in torch!
         self.split = split
