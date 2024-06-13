@@ -1,9 +1,36 @@
 # TransUNet
 This repo holds code for [TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation](https://arxiv.org/pdf/2102.04306.pdf)
 
-## 📰 News
+## Structure
 
-- [10/15/2023] 🔥 3D version of TransUNet is out! Our 3D TransUNet surpasses nn-UNet with 88.11% Dice score on the BTCV dataset and outperforms the top-1 solution in the BraTs 2021 challenge. Please take a look at the [code](https://github.com/Beckschen/3D-TransUNet/tree/main) and [paper](https://arxiv.org/abs/2310.07781).
+
+```bash
+.
+├── FLA-TransUNet
+│   ├──datasets
+│   │       └── dataset_*.py
+│   ├──lists
+│   │       └──...
+│   ├──networks
+│   │       └──...
+│   ├──train.py
+│   ├──test.py
+│   ├──dataset_preprocess.py
+│   └──...
+├── model
+│   └── vit_checkpoint
+│       └── imagenet21k
+│           ├── R50+ViT-B_16.npz
+│           └── *.npz
+└── data
+    └──ACDC
+        ├── test_npz
+        │   ├── patient101_slice000.npz
+        │   └── *.npy
+        └── train_npz
+            ├── patient001_slice000.npz
+            └── *.npz
+```
 
 ## Usage
 
@@ -17,11 +44,11 @@ mv {MODEL_NAME}.npz ../model/vit_checkpoint/imagenet21k/{MODEL_NAME}.npz
 
 ### 2. Prepare data
 
-Please go to ["./datasets/README.md"](datasets/README.md) for details, or use the [preprocessed data](https://drive.google.com/drive/folders/1ACJEoTp-uqfFJ73qS3eUObQh52nGuzCd?usp=sharing) and [data2](https://drive.google.com/drive/folders/1KQcrci7aKsYZi1hQoZ3T3QUtcy7b--n4?usp=drive_link) for research purposes.
+Use [ACDC](https://www.kaggle.com/datasets/samdazel/automated-cardiac-diagnosis-challenge-miccai17) dataset. And please use [dataset_preprocess](FLA-TransUNet/dataset_preprocess) to process the train and test data into npz format and write the names of all the train and test data into train.txt and test.txt respectively.
 
 ### 3. Environment
 
-Please prepare an environment with python=3.7, and then use the command "pip install -r requirements.txt" for the dependencies.
+Please prepare an environment with python=3.8, and then use the command "pip install -r requirements.txt" for the dependencies.
 
 ### 4. Train/Test
 
