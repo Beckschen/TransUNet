@@ -11,8 +11,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from datasets.dataset_acdc import ACDC_dataset
 from utils import test_single_volume
-from networks.FT_TransUNet import VisionTransformer as ViT_seg
-from networks.FT_TransUNet import CONFIGS as CONFIGS_ViT_seg
+from networks.FLA_TransUNet import VisionTransformer as ViT_seg
+from networks.FLA_TransUNet import CONFIGS as CONFIGS_ViT_seg
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--volume_path', type=str,
