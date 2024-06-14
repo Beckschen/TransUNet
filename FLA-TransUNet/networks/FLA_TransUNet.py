@@ -19,9 +19,7 @@ from scipy import ndimage
 from . import vit_seg_configs as configs
 from .vit_seg_modeling_resnet_skip import ResNetV2
 
-
 logger = logging.getLogger(__name__)
-
 
 ATTENTION_Q = "MultiHeadDotProductAttention_1/query/"
 ATTENTION_K = "MultiHeadDotProductAttention_1/key/"
@@ -45,6 +43,52 @@ def swish(x):
 
 
 ACT2FN = {"gelu": torch.nn.functional.gelu, "relu": torch.nn.functional.relu, "swish": swish}
+
+class Attention(nn.Module):
+    def __init__(self, config, vis):
+        super(Attention, self).__init__()
+        self.vis = vis
+        self.num_attention_heads = config.transformer["num_heads"]
+        self.attention_head_size = int(config.hidden_size / self.num_attention_heads)
+        self.all_head_size = self.num_attention_heads * self.attention_head_size
+
+        self.query = Linear(config.hidden_size, self.all_head_size)
+        self.key = Linear(config.hidden_size, self.all_head_size)
+        self.value = Linear(config.hidden_size, self.all_head_size)
+
+        self.out = Linear(config.hidden_size, config.hidden_size)
+        self.attn_dropout = Dropout(config.transformer["attention_dropout_rate"])
+        self.proj_dropout = Dropout(config.transformer["attention_dropout_rate"])
+
+        self.softmax = Softmax(dim=-1)
+
+    def transpose_for_scores(self, x):
+        new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
+        x = x.view(*new_x_shape)
+        return x.permute(0, 2, 1, 3)
+
+    def forward(self, hidden_states):
+        mixed_query_layer = self.query(hidden_states)
+        mixed_key_layer = self.key(hidden_states)
+        mixed_value_layer = self.value(hidden_states)
+
+        query_layer = self.transpose_for_scores(mixed_query_layer)
+        key_layer = self.transpose_for_scores(mixed_key_layer)
+        value_layer = self.transpose_for_scores(mixed_value_layer)
+
+        attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
+        attention_scores = attention_scores / math.sqrt(self.attention_head_size)
+        attention_probs = self.softmax(attention_scores)
+        weights = attention_probs if self.vis else None
+        attention_probs = self.attn_dropout(attention_probs)
+
+        context_layer = torch.matmul(attention_probs, value_layer)
+        context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
+        new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
+        context_layer = context_layer.view(*new_context_layer_shape)
+        attention_output = self.out(context_layer)
+        attention_output = self.proj_dropout(attention_output)
+        return attention_output, weights
 
 class FocusedLinearAttention(nn.Module):
     """ Window based multi-head self attention (W-MSA) module with relative position bias.
@@ -199,20 +243,20 @@ class Embeddings(nn.Module):
         x = x.flatten(2)
         x = x.transpose(-1, -2)  # (B, n_patches, hidden)
 
-        print(x.shape, self.position_embeddings.shape)
         embeddings = x + self.position_embeddings
         embeddings = self.dropout(embeddings)
         return embeddings, features
 
-
 class Block(nn.Module):
-    def __init__(self, config, vis):
+    def __init__(self, config, vis, attention_type):
         super(Block, self).__init__()
         self.hidden_size = config.hidden_size
         self.attention_norm = LayerNorm(config.hidden_size, eps=1e-6)
         self.ffn_norm = LayerNorm(config.hidden_size, eps=1e-6)
         self.ffn = Mlp(config)
-        self.attn = FocusedLinearAttention(config, vis)
+        # self.attn = FocusedLinearAttention(config, vis)
+        self.attn = attention_type(config, vis)  # Use the dynamic attention type
+        self.attention_type = str(attention_type)
 
     def forward(self, x):
         h = x
@@ -239,10 +283,20 @@ class Block(nn.Module):
             value_bias = np2th(weights[pjoin(ROOT, ATTENTION_V, "bias")]).view(-1)
             out_bias = np2th(weights[pjoin(ROOT, ATTENTION_OUT, "bias")]).view(-1)
 
-            self.attn.qkv.weight.copy_(torch.cat([query_weight, key_weight, value_weight], dim=0))
-            self.attn.qkv.bias.copy_(torch.cat([query_bias, key_bias, value_bias], dim=0))
-            self.attn.proj.weight.copy_(out_weight)
-            self.attn.proj.bias.copy_(out_bias)
+            if self.attention_type == "FocusedLinearAttention":
+                self.attn.qkv.weight.copy_(torch.cat([query_weight, key_weight, value_weight], dim=0))
+                self.attn.qkv.bias.copy_(torch.cat([query_bias, key_bias, value_bias], dim=0))
+                self.attn.proj.weight.copy_(out_weight)
+                self.attn.proj.bias.copy_(out_bias)
+            elif self.attention_type == "Attention":
+                self.attn.query.weight.copy_(query_weight)
+                self.attn.key.weight.copy_(key_weight)
+                self.attn.value.weight.copy_(value_weight)
+                self.attn.out.weight.copy_(out_weight)
+                self.attn.query.bias.copy_(query_bias)
+                self.attn.key.bias.copy_(key_bias)
+                self.attn.value.bias.copy_(value_bias)
+                self.attn.out.bias.copy_(out_bias)
 
             mlp_weight_0 = np2th(weights[pjoin(ROOT, FC_0, "kernel")]).t()
             mlp_weight_1 = np2th(weights[pjoin(ROOT, FC_1, "kernel")]).t()
@@ -261,13 +315,14 @@ class Block(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, config, vis):
+    def __init__(self, config, vis, attention_type):
         super(Encoder, self).__init__()
         self.vis = vis
         self.layer = nn.ModuleList()
         self.encoder_norm = LayerNorm(config.hidden_size, eps=1e-6)
         for _ in range(config.transformer["num_layers"]):
-            layer = Block(config, vis)
+            # layer = Block(config, vis)
+            layer = Block(config, vis, attention_type)  # Pass the attention type to Block
             self.layer.append(copy.deepcopy(layer))
 
     def forward(self, hidden_states):
@@ -281,10 +336,11 @@ class Encoder(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, config, img_size, vis):
+    def __init__(self, config, img_size, vis, attention_type):
         super(Transformer, self).__init__()
         self.embeddings = Embeddings(config, img_size=img_size)
-        self.encoder = Encoder(config, vis)
+        # self.encoder = Encoder(config, vis)
+        self.encoder = Encoder(config, vis, attention_type)  # Pass the attention type to Encoder
 
     def forward(self, input_ids):
         embedding_output, features = self.embeddings(input_ids)
@@ -409,7 +465,9 @@ class VisionTransformer(nn.Module):
         self.num_classes = num_classes
         self.zero_head = zero_head
         self.classifier = config.classifier
-        self.transformer = Transformer(config, img_size, vis)
+        # self.transformer = Transformer(config, img_size, vis)
+        attention_type = config.attention_type  # Get the attention type from config
+        self.transformer = Transformer(config, img_size, vis, attention_type)  # Pass the attention type to Transformer
         self.decoder = DecoderCup(config)
         self.segmentation_head = SegmentationHead(
             in_channels=config['decoder_channels'][-1],
@@ -486,4 +544,7 @@ CONFIGS = {
     'testing': configs.get_testing(),
 }
 
-
+attention_types = {
+    'FocusedLinearAttention': FocusedLinearAttention,
+    'WindowAttention': Attention
+}

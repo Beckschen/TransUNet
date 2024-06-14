@@ -8,6 +8,7 @@ import torch.backends.cudnn as cudnn
 from networks.FLA_TransUNet import VisionTransformer as ViT_seg
 from networks.FLA_TransUNet import CONFIGS as CONFIGS_ViT_seg
 from trainer import trainer_acdc
+from utils import attention_types
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str,
@@ -16,6 +17,7 @@ parser.add_argument('--dataset', type=str,
                     default='ACDC', help='experiment_name')
 parser.add_argument('--list_dir', type=str,
                     default='./lists/lists_ACDC', help='list dir')
+parser.add_argument('--attention', type=str, default='FocusedLinearAttention', help='Choose Attention Type')
 parser.add_argument('--num_classes', type=int,
                     default=4, help='output channel of network')
 parser.add_argument('--max_iterations', type=int,
@@ -40,7 +42,6 @@ parser.add_argument('--vit_name', type=str,
 parser.add_argument('--vit_patches_size', type=int,
                     default=16, help='vit_patches_size, default is 16')
 args = parser.parse_args()
-
 
 if __name__ == "__main__":
     if not args.deterministic:
@@ -72,6 +73,7 @@ if __name__ == "__main__":
     snapshot_path = "../model/{}/{}".format(args.exp, 'TU')
     snapshot_path = snapshot_path + '_pretrain' if args.is_pretrain else snapshot_path
     snapshot_path += '_' + args.vit_name
+    snapshot_path += '_' + args.attention
     snapshot_path = snapshot_path + '_skip' + str(args.n_skip)
     snapshot_path = snapshot_path + '_vitpatch' + str(args.vit_patches_size) if args.vit_patches_size!=16 else snapshot_path
     snapshot_path = snapshot_path+'_'+str(args.max_iterations)[0:2]+'k' if args.max_iterations != 30000 else snapshot_path
@@ -86,10 +88,11 @@ if __name__ == "__main__":
     config_vit = CONFIGS_ViT_seg[args.vit_name]
     config_vit.n_classes = args.num_classes
     config_vit.n_skip = args.n_skip
+    config_vit.attention_type = attention_types[args.attention]  # Set the attention type here
     if args.vit_name.find('R50') != -1:
         config_vit.patches.grid = (int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
-    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes)
-    # net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
+    # net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes)
+    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
     net.load_from(weights=np.load(config_vit.pretrained_path))
 
     trainer = {'ACDC': trainer_acdc,}

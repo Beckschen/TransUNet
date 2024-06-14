@@ -1,10 +1,19 @@
+import copy
 import numpy as np
+import matplotlib.pyplot as plt
 import torch
+from PIL import Image
 from medpy import metric
 from scipy.ndimage import zoom
 import torch.nn as nn
 import SimpleITK as sitk
+from networks.FLA_TransUNet import FocusedLinearAttention, Attention
 
+# Define a mapping for attention types
+attention_types = {
+    'FocusedLinearAttention': FocusedLinearAttention,
+    'Attention': Attention
+}
 
 class DiceLoss(nn.Module):
     def __init__(self, n_classes):
@@ -49,6 +58,7 @@ class DiceLoss(nn.Module):
 def calculate_metric_percase(pred, gt):
     pred[pred > 0] = 1
     gt[gt > 0] = 1
+    print(f'Pred sum: {pred.sum()}, GT sum: {gt.sum()}')
     if pred.sum() > 0 and gt.sum() > 0:
         dice = metric.binary.dc(pred, gt)
         hd95 = metric.binary.hd95(pred, gt)
@@ -58,46 +68,109 @@ def calculate_metric_percase(pred, gt):
     else:
         return 0, 0
 
+# 处理4D
+# def test_single_volume(image, label, net, classes, patch_size=[256, 256], test_save_path=None, case=None):
+#     image, label = image.squeeze(0).cpu().detach().numpy(), label.squeeze(0).cpu().detach().numpy()
+#     print(f'Input image shape: {image.shape}, label shape: {label.shape}')
+#     x, y = image.shape[1], image.shape[2]  # use the correct dimensions
+#     if x != patch_size[0] or y != patch_size[1]:
+#         image = zoom(image, (1, patch_size[0] / x, patch_size[1] / y), order=3)  # maintain channel dimension
+#     input = torch.from_numpy(image).unsqueeze(0).float()  # add batch dimension
+#     net.eval()
+#     with torch.no_grad():
+#         outputs = net(input)
+#         print(f'Output shape: {outputs.shape}')
+#         prediction = torch.argmax(torch.softmax(outputs, dim=1), dim=1).squeeze(0)
+#         prediction = prediction.cpu().detach().numpy()
+#         if x != patch_size[0] or y != patch_size[1]:
+#             prediction = zoom(prediction, (x / patch_size[0], y / patch_size[1]), order=0)
+#
+#     metric_list = []
+#     for i in range(1, classes):
+#         metric_list.append(
+#             calculate_metric_percase(prediction == i, label[0] == i))  # label needs to remove channel dimension
+#
+#     if test_save_path is not None:
+#         img_itk = sitk.GetImageFromArray(image[0].astype(np.float32))  # remove channel dimension for SimpleITK
+#         prd_itk = sitk.GetImageFromArray(prediction.astype(np.float32))
+#         lab_itk = sitk.GetImageFromArray(label[0].astype(np.float32))  # remove channel dimension for SimpleITK
+#         img_itk.SetSpacing((1, 1))
+#         prd_itk.SetSpacing((1, 1))
+#         lab_itk.SetSpacing((1, 1))
+#         sitk.WriteImage(prd_itk, test_save_path + '/' + case + "_pred.nii.gz")
+#         sitk.WriteImage(img_itk, test_save_path + '/' + case + "_img.nii.gz")
+#         sitk.WriteImage(lab_itk, test_save_path + '/' + case + "_gt.nii.gz")
+#     return metric_list
 
-def test_single_volume(image, label, net, classes, patch_size=[256, 256], test_save_path=None, case=None, z_spacing=1):
-    image, label = image.squeeze(0).cpu().detach().numpy(), label.squeeze(0).cpu().detach().numpy()
-    if len(image.shape) == 3:
-        prediction = np.zeros_like(label)
-        for ind in range(image.shape[0]):
-            slice = image[ind, :, :]
-            x, y = slice.shape[0], slice.shape[1]
-            if x != patch_size[0] or y != patch_size[1]:
-                slice = zoom(slice, (patch_size[0] / x, patch_size[1] / y), order=3)  # previous using 0
-            input = torch.from_numpy(slice).unsqueeze(0).unsqueeze(0).float().cuda()
-            net.eval()
-            with torch.no_grad():
-                outputs = net(input)
-                out = torch.argmax(torch.softmax(outputs, dim=1), dim=1).squeeze(0)
-                out = out.cpu().detach().numpy()
-                if x != patch_size[0] or y != patch_size[1]:
-                    pred = zoom(out, (x / patch_size[0], y / patch_size[1]), order=0)
-                else:
-                    pred = out
-                prediction[ind] = pred
-    else:
-        input = torch.from_numpy(image).unsqueeze(
-            0).unsqueeze(0).float().cuda()
-        net.eval()
-        with torch.no_grad():
-            out = torch.argmax(torch.softmax(net(input), dim=1), dim=1).squeeze(0)
-            prediction = out.cpu().detach().numpy()
+# 处理张量为3
+def test_single_volume(img, label, net, classes, patch_size=[256, 256], test_save_path=None, case=None):
+    image, label = img.squeeze(0).cpu().detach().numpy(), label.squeeze(0).cpu().detach().numpy()
+    x, y = image.shape
+    if x != patch_size[0] or y != patch_size[1]:
+        image = zoom(image, (patch_size[0] / x, patch_size[1] / y), order=3)  # maintain original dimensions
+    input = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float().cuda()  # add batch and channel dimensions
+    # input = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float()  # add batch and channel dimensions
+    net.eval()
+    with torch.no_grad():
+        outputs = net(input)
+        print(f'Output shape: {outputs.shape}')
+        prediction = torch.argmax(torch.softmax(outputs, dim=1), dim=1).squeeze(0)
+        prediction = prediction.cpu().detach().numpy()
+        print(f'Prediction sum: {prediction.sum()}')
+        if x != patch_size[0] or y != patch_size[1]:
+            prediction = zoom(prediction, (x / patch_size[0], y / patch_size[1]), order=0)
+        else:
+            prediction = outputs
+
     metric_list = []
     for i in range(1, classes):
         metric_list.append(calculate_metric_percase(prediction == i, label == i))
-
     if test_save_path is not None:
-        img_itk = sitk.GetImageFromArray(image.astype(np.float32))
-        prd_itk = sitk.GetImageFromArray(prediction.astype(np.float32))
-        lab_itk = sitk.GetImageFromArray(label.astype(np.float32))
-        img_itk.SetSpacing((1, 1, z_spacing))
-        prd_itk.SetSpacing((1, 1, z_spacing))
-        lab_itk.SetSpacing((1, 1, z_spacing))
-        sitk.WriteImage(prd_itk, test_save_path + '/' + case + "_pred.nii.gz")
-        sitk.WriteImage(img_itk, test_save_path + '/' + case + "_img.nii.gz")
-        sitk.WriteImage(lab_itk, test_save_path + '/' + case + "_gt.nii.gz")
+        image = zoom(image, (x / patch_size[0], y / patch_size[1]), order=3)
+        print(image.shape)
+        np.savez_compressed(f"{test_save_path}/{case}.npz", image=image, label=label, prediction=prediction)
+
     return metric_list
+
+# def test_single_volume(image, label, net, classes, patch_size=[256, 256], test_save_path=None, case=None, z_spacing=1):
+#     image, label = image.squeeze(0).cpu().detach().numpy(), label.squeeze(0).cpu().detach().numpy()
+#     if len(image.shape) == 3:
+#         prediction = np.zeros_like(label)
+#         for ind in range(image.shape[0]):
+#             slice = image[ind, :, :]
+#             x, y = slice.shape[0], slice.shape[1]
+#             if x != patch_size[0] or y != patch_size[1]:
+#                 slice = zoom(slice, (patch_size[0] / x, patch_size[1] / y), order=3)  # previous using 0
+#             input = torch.from_numpy(slice).unsqueeze(0).unsqueeze(0).float().cuda()
+#             net.eval()
+#             with torch.no_grad():
+#                 outputs = net(input)
+#                 out = torch.argmax(torch.softmax(outputs, dim=1), dim=1).squeeze(0)
+#                 out = out.cpu().detach().numpy()
+#                 if x != patch_size[0] or y != patch_size[1]:
+#                     pred = zoom(out, (x / patch_size[0], y / patch_size[1]), order=0)
+#                 else:
+#                     pred = out
+#                 prediction[ind] = pred
+#     else:
+#         input = torch.from_numpy(image).unsqueeze(
+#             0).unsqueeze(0).float().cuda()
+#         net.eval()
+#         with torch.no_grad():
+#             out = torch.argmax(torch.softmax(net(input), dim=1), dim=1).squeeze(0)
+#             prediction = out.cpu().detach().numpy()
+#     metric_list = []
+#     for i in range(1, classes):
+#         metric_list.append(calculate_metric_percase(prediction == i, label == i))
+#
+#     if test_save_path is not None:
+#         img_itk = sitk.GetImageFromArray(image.astype(np.float32))
+#         prd_itk = sitk.GetImageFromArray(prediction.astype(np.float32))
+#         lab_itk = sitk.GetImageFromArray(label.astype(np.float32))
+#         img_itk.SetSpacing((1, 1, z_spacing))
+#         prd_itk.SetSpacing((1, 1, z_spacing))
+#         lab_itk.SetSpacing((1, 1, z_spacing))
+#         sitk.WriteImage(prd_itk, test_save_path + '/' + case + "_pred.nii.gz")
+#         sitk.WriteImage(img_itk, test_save_path + '/' + case + "_img.nii.gz")
+#         sitk.WriteImage(lab_itk, test_save_path + '/' + case + "_gt.nii.gz")
+#     return metric_list

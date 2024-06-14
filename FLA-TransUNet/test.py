@@ -10,7 +10,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from datasets.dataset_acdc import ACDC_dataset
-from utils import test_single_volume
+from utils import test_single_volume, attention_types
 from networks.FLA_TransUNet import VisionTransformer as ViT_seg
 from networks.FLA_TransUNet import CONFIGS as CONFIGS_ViT_seg
 
@@ -24,13 +24,12 @@ parser.add_argument('--num_classes', type=int,
                     default=4, help='output channel of network')
 parser.add_argument('--list_dir', type=str,
                     default='./lists/lists_ACDC', help='list dir')
-
+parser.add_argument('--attention', type=str, default='FocusedLinearAttention', help='Choose Attention Type')
 parser.add_argument('--max_iterations', type=int, default=20000, help='maximum epoch number to train')
 parser.add_argument('--max_epochs', type=int, default=30, help='maximum epoch number to train')
 parser.add_argument('--batch_size', type=int, default=16, help='batch_size per gpu')
 parser.add_argument('--img_size', type=int, default=224, help='input patch size of network input')
 parser.add_argument('--is_savenii', action="store_true", help='whether to save results during inference')
-
 parser.add_argument('--n_skip', type=int, default=3, help='using number of skip-connect, default is num')
 parser.add_argument('--vit_name', type=str, default='R50-ViT-B_16', help='select one vit model')
 
@@ -42,17 +41,38 @@ parser.add_argument('--vit_patches_size', type=int, default=16, help='vit_patche
 args = parser.parse_args()
 
 
+# def inference(args, model, test_save_path=None):
+#     db_test = args.Dataset(base_dir=args.volume_path, split="test", list_dir=args.list_dir)
+#     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
+#     logging.info("{} test iterations per epoch".format(len(testloader)))
+#     model.eval()
+#     metric_list = 0.0
+#     for i_batch, sampled_batch in tqdm(enumerate(testloader)):
+#         print("image size is ", sampled_batch["image"].size())
+#         h, w = sampled_batch["image"].size()[2:]
+#         image, label, case_name = sampled_batch["image"], sampled_batch["label"], sampled_batch['case_name'][0]
+#         metric_i = test_single_volume(image, label, model, classes=args.num_classes, patch_size=[args.img_size, args.img_size], test_save_path=test_save_path, case=case_name)
+#         metric_list += np.array(metric_i)
+#         logging.info('idx %d case %s mean_dice %f mean_hd95 %f' % (i_batch, case_name, np.mean(metric_i, axis=0)[0], np.mean(metric_i, axis=0)[1]))
+#     metric_list = metric_list / len(db_test)
+#     for i in range(1, args.num_classes):
+#         logging.info('Mean class %d mean_dice %f mean_hd95 %f' % (i, metric_list[i-1][0], metric_list[i-1][1]))
+#     performance = np.mean(metric_list, axis=0)[0]
+#     mean_hd95 = np.mean(metric_list, axis=0)[1]
+#     logging.info('Testing performance in best val model: mean_dice : %f mean_hd95 : %f' % (performance, mean_hd95))
+#     return "Testing Finished!"
+
+# 处理3D
 def inference(args, model, test_save_path=None):
-    db_test = args.Dataset(base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir)
-    testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
+    db_test = args.Dataset(base_dir=args.volume_path, split="test", list_dir=args.list_dir)
+    testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=0)
     logging.info("{} test iterations per epoch".format(len(testloader)))
     model.eval()
     metric_list = 0.0
     for i_batch, sampled_batch in tqdm(enumerate(testloader)):
-        h, w = sampled_batch["image"].size()[2:]
+        h, w = sampled_batch["image"].size()[1:]  # get height and width dimensions
         image, label, case_name = sampled_batch["image"], sampled_batch["label"], sampled_batch['case_name'][0]
-        metric_i = test_single_volume(image, label, model, classes=args.num_classes, patch_size=[args.img_size, args.img_size],
-                                      test_save_path=test_save_path, case=case_name, z_spacing=args.z_spacing)
+        metric_i = test_single_volume(image, label, model, classes=args.num_classes, patch_size=[args.img_size, args.img_size], test_save_path=test_save_path, case=case_name)
         metric_list += np.array(metric_i)
         logging.info('idx %d case %s mean_dice %f mean_hd95 %f' % (i_batch, case_name, np.mean(metric_i, axis=0)[0], np.mean(metric_i, axis=0)[1]))
     metric_list = metric_list / len(db_test)
@@ -63,6 +83,28 @@ def inference(args, model, test_save_path=None):
     logging.info('Testing performance in best val model: mean_dice : %f mean_hd95 : %f' % (performance, mean_hd95))
     return "Testing Finished!"
 
+# # 处理4D
+# def inference(args, model, test_save_path=None):
+#     db_test = args.Dataset(base_dir=args.volume_path, split="test", list_dir=args.list_dir)
+#     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=0)
+#     logging.info("{} test iterations per epoch".format(len(testloader)))
+#     model.eval()
+#     metric_list = 0.0
+#     for i_batch, sampled_batch in tqdm(enumerate(testloader)):
+#         # Get the batch size, channels, height, and width
+#         b, c, h, w = sampled_batch["image"].size()
+#         image, label, case_name = sampled_batch["image"], sampled_batch["label"], sampled_batch['case_name'][0]
+#         metric_i = test_single_volume(image, label, model, classes=args.num_classes, patch_size=[args.img_size, args.img_size],
+#                                       test_save_path=test_save_path, case=case_name)
+#         metric_list += np.array(metric_i)
+#         logging.info('idx %d case %s mean_dice %f mean_hd95 %f' % (i_batch, case_name, np.mean(metric_i, axis=0)[0], np.mean(metric_i, axis=0)[1]))
+#     metric_list = metric_list / len(db_test)
+#     for i in range(1, args.num_classes):
+#         logging.info('Mean class %d mean_dice %f mean_hd95 %f' % (i, metric_list[i-1][0], metric_list[i-1][1]))
+#     performance = np.mean(metric_list, axis=0)[0]
+#     mean_hd95 = np.mean(metric_list, axis=0)[1]
+#     logging.info('Testing performance in best val model: mean_dice : %f mean_hd95 : %f' % (performance, mean_hd95))
+#     return "Testing Finished!"
 
 if __name__ == "__main__":
 
@@ -83,7 +125,6 @@ if __name__ == "__main__":
             'volume_path': '../data/ACDC/test_npz',
             'list_dir': './lists/lists_ACDC',
             'num_classes': 4,
-            'z_spacing': 1,
         },
     }
     dataset_name = args.dataset
@@ -91,7 +132,6 @@ if __name__ == "__main__":
     args.volume_path = dataset_config[dataset_name]['volume_path']
     args.Dataset = dataset_config[dataset_name]['Dataset']
     args.list_dir = dataset_config[dataset_name]['list_dir']
-    args.z_spacing = dataset_config[dataset_name]['z_spacing']
     args.is_pretrain = True
 
     # name the same snapshot defined in train script!
@@ -99,6 +139,7 @@ if __name__ == "__main__":
     snapshot_path = "../model/{}/{}".format(args.exp, 'TU')
     snapshot_path = snapshot_path + '_pretrain' if args.is_pretrain else snapshot_path
     snapshot_path += '_' + args.vit_name
+    snapshot_path += '_' + args.attention
     snapshot_path = snapshot_path + '_skip' + str(args.n_skip)
     snapshot_path = snapshot_path + '_vitpatch' + str(
         args.vit_patches_size) if args.vit_patches_size != 16 else snapshot_path
@@ -115,17 +156,20 @@ if __name__ == "__main__":
     config_vit.n_classes = args.num_classes
     config_vit.n_skip = args.n_skip
     config_vit.patches.size = (args.vit_patches_size, args.vit_patches_size)
+    config_vit.attention_type = attention_types[args.attention] # Add the attention type to the config
+
     if args.vit_name.find('R50') != -1:
         config_vit.patches.grid = (
             int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
-    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes)
-    # net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
+    # net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes)
+    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
 
     snapshot = os.path.join(snapshot_path, 'best_model.pth')
     if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'epoch_' + str(args.max_epochs - 1))
 
-    # 手动添加权限
-    snapshot = r"../model/TU_ACDC224/TU_pretrain_R50-ViT-B_16_skip3_5k_epo2_bs16_lr0.005_224/epoch_1.pth"
+    # Set model path manually
+    # snapshot = r"../model/TU_ACDC224/TU_pretrain_R50-ViT-B_16_FocusedLinearAttention_skip3_epo3_bs16_lr0.005_224\epoch_2.pth"
+
     net.load_state_dict(torch.load(snapshot))
     snapshot_name = snapshot_path.split('/')[-1]
 

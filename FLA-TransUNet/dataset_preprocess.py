@@ -19,26 +19,30 @@ def npz(source_path, target_path):
             images.append(each)
 
     # read images and labels and save them as npz file
-    os.mkdir(target_path)
+    if not os.path.exists(target_path):
+        os.makedirs(target_path)
     prev_patient = "patient001"
     slice_num = 0
     for i in range(len(images)):
         slice_num = 0
         patient = images[i].split("\\")[-2]
-        # print(patient)
-        # print(prev_patient)
+
         image = nb.load(images[i]).get_fdata()
         label = nb.load(labels[i]).get_fdata()
         slices = image.shape[2]
         if i != 0 and prev_patient == patient:
             slice_num = slice_num + slices
-        # print(slices, slice_num)
+
         for num in range(slices):
             # resizing using cv2 so the image isn't changed or tiled as with numpy
             case_image = cv2.resize(image[:, :, num], (512, 512))
             case_label = cv2.resize(label[:, :, num], (512, 512))
-            # case['image'] = case_image
-            # case['label'] = case_label
+
+            # Adjust label values according to specified conditions
+            case_label[(case_label > 0) & (case_label <= 1)] = 1
+            case_label[(case_label > 1) & (case_label <= 2)] = 2
+            case_label[(case_label > 2) & (case_label <= 3)] = 3
+
             np.savez(target_path + "\\" + str(patient) + "_slice" + str(slice_num).zfill(3), image=case_image, label=case_label)
             slice_num += 1
         prev_patient = patient
