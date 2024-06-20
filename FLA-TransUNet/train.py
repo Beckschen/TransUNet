@@ -91,8 +91,8 @@ if __name__ == "__main__":
     config_vit.attention_type = attention_types[args.attention]  # Set the attention type here
     if args.vit_name.find('R50') != -1:
         config_vit.patches.grid = (int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
-    # net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes)
-    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
+    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes)
+    # net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
     net.load_from(weights=np.load(config_vit.pretrained_path))
 
     trainer = {'ACDC': trainer_acdc,}

@@ -1,7 +1,11 @@
 # import SimpleITK as sitk
 # import matplotlib.pyplot as plt
-#
+# import cv2
+# import nibabel as nb
 # # 读取 .nii.gz 文件
+# import numpy as np
+#
+#
 # def read_nii_file(filepath):
 #     image = sitk.ReadImage(filepath)
 #     image_array = sitk.GetArrayFromImage(image)
@@ -15,13 +19,35 @@
 #     plt.show()
 #
 # # 文件路径
-# filepath = "../predictions/TU_ACDC224/TU_pretrain_R50-ViT-B_16_skip3_20k_bs16_224/patient101_slice000_gt.nii.gz"
-#
+# img_path = "D:\Software\GitHub\FLA-TransUNet\data\ACDC\\training\patient001\patient001_frame01.nii.gz"
+# label_path = "D:\Software\GitHub\FLA-TransUNet\data\ACDC\\training\patient001\patient001_frame01_gt.nii.gz"
+# #
 # # 读取和显示图像
-# image_array = read_nii_file(filepath)
+# image_array = read_nii_file(img_path)
 # print(f"Image shape: {image_array.shape}")
+# label_array = read_nii_file(label_path)
+# print(f"Label shape: {label_array.shape}")
 #
-# # 如果图像是3D的，选择一个切片显示
+#
+# image = nb.load(img_path).get_fdata()
+# label = nb.load(label_path).get_fdata()
+# slices = image.shape[2]
+# print(f"Image shape: {image_array.shape}")
+# print(f"Label shape: {label_array.shape}")
+#
+# for num in range(slices):
+#     print("image shape: ", image[:, :, num].shape, "label shape: ", label[:, :, num].shape)
+#
+#     # resizing using cv2 so the image isn't changed or tiled as with numpy
+#     case_image = cv2.resize(image[:, :, num], (512, 512))
+#     case_label = cv2.resize(label[:, :, num], (512, 512))
+#     print(np.unique(label[:, :, num]), np.unique(case_label))
+    # Adjust label values according to specified conditions
+    # case_label[(case_label > 0) & (case_label <= 1)] = 1
+    # case_label[(case_label > 1) & (case_label <= 2)] = 2
+    # case_label[(case_label > 2) & (case_label <= 3)] = 3
+
+# 如果图像是3D的，选择一个切片显示
 # if len(image_array.shape) == 3:
 #     slice_index = image_array.shape[0] // 2  # 中间切片
 #     display_image(image_array[slice_index], title=f"Slice {slice_index}")
@@ -53,12 +79,12 @@ print(f'Image shape: {image.shape}, Label shape: {label.shape}')
 # plt.subplot(1, 3, 2)
 # plt.imshow(label, cmap='gray')
 # plt.title('Label')
-
+#
 # plt.subplot(1, 3, 3)
 # plt.imshow(prediction, cmap='gray')
 # plt.title('Prediction')
 
-# # 显示图像和标签
+# 显示图像和标签
 plt.figure(figsize=(12, 6))
 
 plt.imshow(image, cmap='gray')  # 假设是灰度图像
@@ -70,6 +96,7 @@ plt.imshow(prediction, cmap='jet', alpha=0.5)
 
 plt.show()
 
+## h5
 # import h5py
 # import numpy as np
 # import matplotlib.pyplot as plt

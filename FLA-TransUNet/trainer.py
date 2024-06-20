@@ -23,8 +23,8 @@ def trainer_acdc(args, model, snapshot_path):
     logging.info(str(args))
     base_lr = args.base_lr
     num_classes = args.num_classes
-    # batch_size = args.batch_size
-    batch_size = args.batch_size * args.n_gpu
+    batch_size = args.batch_size
+    # batch_size = args.batch_size * args.n_gpu
 
     db_train = ACDC_dataset(base_dir=args.root_path, list_dir=args.list_dir, split="train",
                                transform=transforms.Compose(
@@ -34,7 +34,7 @@ def trainer_acdc(args, model, snapshot_path):
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
 
-    trainloader = DataLoader(db_train, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True, worker_init_fn=worker_init_fn)
+    trainloader = DataLoader(db_train, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True, worker_init_fn=worker_init_fn)
     if args.n_gpu > 1:
         model = nn.DataParallel(model)
     model.train()
@@ -53,8 +53,8 @@ def trainer_acdc(args, model, snapshot_path):
     for epoch_num in iterator:
         for i_batch, sampled_batch in enumerate(trainloader):
             image_batch, label_batch = sampled_batch['image'], sampled_batch['label']
-            # image_batch, label_batch = image_batch, label_batch
-            image_batch, label_batch = image_batch.cuda(), label_batch.cuda()
+            image_batch, label_batch = image_batch, label_batch
+            # image_batch, label_batch = image_batch.cuda(), label_batch.cuda()
             outputs = model(image_batch)
             loss_ce = ce_loss(outputs, label_batch[:].long())
             loss_dice = dice_loss(outputs, label_batch, softmax=True)

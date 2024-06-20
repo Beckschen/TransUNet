@@ -35,14 +35,15 @@ def npz(source_path, target_path):
 
         for num in range(slices):
             # resizing using cv2 so the image isn't changed or tiled as with numpy
-            case_image = cv2.resize(image[:, :, num], (512, 512))
-            case_label = cv2.resize(label[:, :, num], (512, 512))
+            case_image = cv2.resize(image[:, :, num], (256, 256))
+            case_label = cv2.resize(label[:, :, num], (256, 256))
 
             # Adjust label values according to specified conditions
             case_label[(case_label > 0) & (case_label <= 1)] = 1
             case_label[(case_label > 1) & (case_label <= 2)] = 2
             case_label[(case_label > 2) & (case_label <= 3)] = 3
 
+            # np.savez(target_path + "\\" + str(patient) + "_slice" + str(slice_num).zfill(3), image=image[:, :, num], label=label[:, :, num])
             np.savez(target_path + "\\" + str(patient) + "_slice" + str(slice_num).zfill(3), image=case_image, label=case_label)
             slice_num += 1
         prev_patient = patient
