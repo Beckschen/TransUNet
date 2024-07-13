@@ -64,6 +64,9 @@ CUDA_VISIBLE_DEVICES=0 python train.py --dataset Synapse --vit_name R50-ViT-B_16
 python test.py --dataset Synapse --vit_name R50-ViT-B_16
 ```
 
+## Our models
+* [Get our models in this link](https://drive.google.com/drive/folders/15BLoKhiJCowPlYBgbJMsPUa0OEd5wzf5?usp=sharing)
+
 ## Reference
 * [Google ViT](https://github.com/google-research/vision_transformer)
 * [ViT-pytorch](https://github.com/jeonsworld/ViT-pytorch)
