@@ -91,17 +91,6 @@ class Attention(nn.Module):
         return attention_output, weights
 
 class FocusedLinearAttention(nn.Module):
-    """ Window based multi-head self attention (W-MSA) module with relative position bias.
-    It supports both of shifted and non-shifted window.
-
-    Args:
-        dim (int): Number of input channels.
-        num_heads (int): Number of attention heads.
-        qkv_bias (bool, optional):  If True, add a learnable bias to query, key, value. Default: True
-        attn_drop (float, optional): Dropout ratio of attention weight. Default: 0.0
-        proj_drop (float, optional): Dropout ratio of output. Default: 0.0
-    """
-
     def __init__(self, config, vis):
         super().__init__()
         self.vis = vis
@@ -171,7 +160,6 @@ class FocusedLinearAttention(nn.Module):
         # print(self.dwc(v).reshape(B, N, C).shape)
         # print(self.dwc(v).reshape(B, N, C).permute(0, 2, 1).shape)
         x = x + self.dwc(v).reshape(B, N, C)
-        # x的shape和dwc后的shape。以及源码中对dwc为什么进行了permute
 
         x = self.proj(x)
         x = self.proj_drop(x)
