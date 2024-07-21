@@ -55,13 +55,21 @@ Please prepare an environment with python=3.8, and then use the command "pip ins
 - Run the train script on synapse dataset. The batch size can be reduced to 12 or 6 to save memory (please also decrease the base_lr linearly), and both can reach similar performance.
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python train.py --dataset Synapse --vit_name R50-ViT-B_16
+# Softmax Attention(TranUNet)
+CUDA_VISIBLE_DEVICES=0 python train.py --dataset ACDC --vit_name R50-ViT-B_16 --max_epochs 50 --n_gpu 1 --attention Attention
+
+# or Linear Attention(FLA-TransUNet)
+CUDA_VISIBLE_DEVICES=0 python train.py --dataset ACDC --vit_name R50-ViT-B_16 --max_epochs 50 --n_gpu 1
 ```
 
 - Run the test script on synapse dataset. It supports testing for both 2D images and 3D volumes.
 
 ```bash
-python test.py --dataset Synapse --vit_name R50-ViT-B_16
+# Softmax Attention(TranUNet)
+python test.py --dataset ACDC --vit_name R50-ViT-B_16 --is_savenii --max_epochs 50 --attention Attention --pretrain_path your_path
+
+# or Linear Attention(FLA-TransUNet)
+python test.py --dataset ACDC --vit_name R50-ViT-B_16 --is_savenii --max_epochs 50 --pretrain_path your_path
 ```
 
 ## Our models
