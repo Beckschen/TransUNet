@@ -61,7 +61,7 @@ import matplotlib.pyplot as plt
 # data = np.load('../data/case0007_slice028.npz')
 # data = np.load('../data/ACDC/test_npz/patient101_slice000.npz')
 # data = np.load('../data/ACDC/train_npz/patient001_slice003.npz')
-data = np.load('../predictions/TU_ACDC224/TU_pretrain_R50-ViT-B_16_FocusedLinearAttention_skip3_20k_bs16_224/patient101_slice000.npz')
+data = np.load('../predictions/TU_ACDC224/TU_pretrain_R50-ViT-B_16_FocusedLinearAttention_skip3_20k_bs16_224/patient101_slice005.npz')
 
 # 获取图像和标签
 image = data['image']
@@ -71,27 +71,27 @@ prediction = data['prediction']
 # 打印形状以确认数据
 print(f'Image shape: {image.shape}, Label shape: {label.shape}')
 # print(f'Image shape: {image.shape}, Label shape: {label.shape}, Prediction shape: {prediction.shape}')
-# plt.figure(figsize=(12, 6))
-# plt.subplot(1, 3, 1)
-# plt.imshow(image, cmap='gray')
-# plt.title('Image')
-#
-# plt.subplot(1, 3, 2)
-# plt.imshow(label, cmap='gray')
-# plt.title('Label')
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 3, 1)
+plt.imshow(image, cmap='gray')
+plt.title('Image')
+
+plt.subplot(1, 3, 2)
+plt.imshow(label, cmap='gray')
+plt.title('Label')
 #
 # plt.subplot(1, 3, 3)
 # plt.imshow(prediction, cmap='gray')
 # plt.title('Prediction')
 
 # 显示图像和标签
-plt.figure(figsize=(12, 6))
-
-plt.imshow(image, cmap='gray')  # 假设是灰度图像
-
-# Overlay the segmentation label with transparency
-# plt.imshow(label, cmap='jet', alpha=0.5)
-plt.imshow(prediction, cmap='jet', alpha=0.5)
+# plt.figure(figsize=(12, 6))
+#
+# plt.imshow(image, cmap='gray')  # 假设是灰度图像
+#
+# # Overlay the segmentation label with transparency
+# # plt.imshow(label, cmap='jet', alpha=0.5)
+# plt.imshow(prediction, cmap='jet', alpha=0.5)
 
 
 plt.show()

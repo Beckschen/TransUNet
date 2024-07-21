@@ -24,12 +24,14 @@ parser.add_argument('--max_iterations', type=int,
                     default=30000, help='maximum epoch number to train')
 parser.add_argument('--max_epochs', type=int,
                     default=150, help='maximum epoch number to train')
+# parser.add_argument('--batch_size', type=int,
+#                     default=16, help='batch_size per gpu')
 parser.add_argument('--batch_size', type=int,
-                    default=16, help='batch_size per gpu')
+                    default=24, help='batch_size per gpu')
 parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
 parser.add_argument('--deterministic', type=int,  default=1,
                     help='whether use deterministic training')
-parser.add_argument('--base_lr', type=float,  default=0.005,
+parser.add_argument('--base_lr', type=float,  default=0.01,
                     help='segmentation network learning rate')
 parser.add_argument('--img_size', type=int,
                     default=224, help='input patch size of network input')
@@ -91,8 +93,8 @@ if __name__ == "__main__":
     config_vit.attention_type = attention_types[args.attention]  # Set the attention type here
     if args.vit_name.find('R50') != -1:
         config_vit.patches.grid = (int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
-    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes)
-    # net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
+    # net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes)
+    net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
     net.load_from(weights=np.load(config_vit.pretrained_path))
 
     trainer = {'ACDC': trainer_acdc,}

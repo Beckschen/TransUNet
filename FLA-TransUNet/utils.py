@@ -108,8 +108,8 @@ def test_single_volume(img, label, net, classes, patch_size=[256, 256], test_sav
     x, y = image.shape
     if x != patch_size[0] or y != patch_size[1]:
         image = zoom(image, (patch_size[0] / x, patch_size[1] / y), order=3)  # maintain original dimensions
-    # input = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float().cuda()  # add batch and channel dimensions
-    input = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float()  # add batch and channel dimensions
+    input = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float().cuda()  # add batch and channel dimensions
+    # input = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float()  # add batch and channel dimensions
     net.eval()
     with torch.no_grad():
         outputs = net(input)

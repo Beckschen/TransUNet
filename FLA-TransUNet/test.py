@@ -27,7 +27,8 @@ parser.add_argument('--list_dir', type=str,
 parser.add_argument('--attention', type=str, default='FocusedLinearAttention', help='Choose Attention Type')
 parser.add_argument('--max_iterations', type=int, default=20000, help='maximum epoch number to train')
 parser.add_argument('--max_epochs', type=int, default=30, help='maximum epoch number to train')
-parser.add_argument('--batch_size', type=int, default=16, help='batch_size per gpu')
+parser.add_argument('--batch_size', type=int, default=24, help='batch_size per gpu')
+# parser.add_argument('--batch_size', type=int, default=16, help='batch_size per gpu')
 parser.add_argument('--img_size', type=int, default=224, help='input patch size of network input')
 parser.add_argument('--is_savenii', action="store_true", help='whether to save results during inference')
 parser.add_argument('--n_skip', type=int, default=3, help='using number of skip-connect, default is num')
@@ -38,6 +39,7 @@ parser.add_argument('--deterministic', type=int, default=1, help='whether use de
 parser.add_argument('--base_lr', type=float, default=0.01, help='segmentation network learning rate')
 parser.add_argument('--seed', type=int, default=1234, help='random seed')
 parser.add_argument('--vit_patches_size', type=int, default=16, help='vit_patches_size, default is 16')
+parser.add_argument('--pretrain_path', type=str)
 args = parser.parse_args()
 
 
@@ -169,7 +171,7 @@ if __name__ == "__main__":
 
     # Set model path manually
     # snapshot = r"../model/TU_ACDC224/TU_pretrain_R50-ViT-B_16_FocusedLinearAttention_skip3_epo3_bs16_lr0.005_224\epoch_2.pth"
-
+    snapshot = args.pretrain_path
     net.load_state_dict(torch.load(snapshot))
     snapshot_name = snapshot_path.split('/')[-1]
 

@@ -23,8 +23,8 @@ def trainer_acdc(args, model, snapshot_path):
     logging.info(str(args))
     base_lr = args.base_lr
     num_classes = args.num_classes
-    batch_size = args.batch_size
-    # batch_size = args.batch_size * args.n_gpu
+    # batch_size = args.batch_size
+    batch_size = args.batch_size * args.n_gpu
 
     db_train = ACDC_dataset(base_dir=args.root_path, list_dir=args.list_dir, split="train",
                                transform=transforms.Compose(
@@ -50,11 +50,15 @@ def trainer_acdc(args, model, snapshot_path):
     logging.info("{} iterations per epoch. {} max iterations ".format(len(trainloader), max_iterations))
     best_performance = 0.0
     iterator = tqdm(range(max_epoch), ncols=70)
+
+    # Start timing
+    start_time = time.time()
+
     for epoch_num in iterator:
         for i_batch, sampled_batch in enumerate(trainloader):
             image_batch, label_batch = sampled_batch['image'], sampled_batch['label']
-            image_batch, label_batch = image_batch, label_batch
-            # image_batch, label_batch = image_batch.cuda(), label_batch.cuda()
+            # image_batch, label_batch = image_batch, label_batch
+            image_batch, label_batch = image_batch.cuda(), label_batch.cuda()
             outputs = model(image_batch)
             loss_ce = ce_loss(outputs, label_batch[:].long())
             loss_dice = dice_loss(outputs, label_batch, softmax=True)
@@ -70,8 +74,17 @@ def trainer_acdc(args, model, snapshot_path):
             writer.add_scalar('info/lr', lr_, iter_num)
             writer.add_scalar('info/total_loss', loss, iter_num)
             writer.add_scalar('info/loss_ce', loss_ce, iter_num)
+            writer.add_scalar('info/loss_dice', loss_dice, iter_num)
 
-            logging.info('iteration %d : loss : %f, loss_ce: %f' % (iter_num, loss.item(), loss_ce.item()))
+            # Calculate accuracy
+            _, preds = torch.max(outputs, 1)
+            correct = torch.sum(preds == label_batch.data).double()
+            accuracy = correct / (batch_size * image_batch.size(2) * image_batch.size(3))
+            writer.add_scalar('info/accuracy', accuracy, iter_num)
+
+            # logging.info('iteration %d : loss : %f, loss_ce: %f, loss_dice: %f' % (iter_num, loss.item(), loss_ce.item(), loss_dice.item()))
+            logging.info('iteration %d : loss : %f, loss_ce: %f, loss_dice: %f, accuracy: %f' % (
+            iter_num, loss.item(), loss_ce.item(), loss_dice.item(), accuracy.item()))
 
             if iter_num % 20 == 0:
                 image = image_batch[1, 0:1, :, :]
@@ -94,6 +107,12 @@ def trainer_acdc(args, model, snapshot_path):
             logging.info("save model to {}".format(save_mode_path))
             iterator.close()
             break
+
+    # End timing
+    end_time = time.time()
+    total_training_time = end_time - start_time
+    logging.info("Total training time: {} seconds".format(total_training_time))
+    writer.add_text('info/training_time', str(total_training_time))
 
     writer.close()
     return "Training Finished!"
