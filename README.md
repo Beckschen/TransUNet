@@ -2,8 +2,20 @@
 This repo holds code for [TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation](https://arxiv.org/pdf/2102.04306.pdf)
 
 ## 📰 News
+- [7/26/2024] TransUNet, which supports both 2D and 3D data and incorporates a Transformer encoder and decoder, has been featured in the journal Medical Image Analysis ([link](https://www.sciencedirect.com/science/article/pii/S1361841524002056)).
+```bibtex
+@article{chen2024transunet,
+  title={TransUNet: Rethinking the U-Net architecture design for medical image segmentation through the lens of transformers},
+  author={Chen, Jieneng and Mei, Jieru and Li, Xianhang and Lu, Yongyi and Yu, Qihang and Wei, Qingyue and Luo, Xiangde and Xie, Yutong and Adeli, Ehsan and Wang, Yan and others},
+  journal={Medical Image Analysis},
+  pages={103280},
+  year={2024},
+  publisher={Elsevier}
+}
+```
 
-- [10/15/2023] 🔥 3D version of TransUNet is out! Our 3D TransUNet surpasses nn-UNet with 88.11% Dice score on the BTCV dataset and outperforms the top-1 solution in the BraTs 2021 challenge. Please take a look at the [code](https://github.com/Beckschen/3D-TransUNet/tree/main) and [paper](https://arxiv.org/abs/2310.07781).
+- [10/15/2023] 🔥 3D version of TransUNet is out! Our 3D TransUNet surpasses nn-UNet with 88.11% Dice score on the BTCV dataset and outperforms the top-1 solution in the BraTs 2021 challenge and secure the second place in BraTs 2023 challenge. Please take a look at the [code](https://github.com/Beckschen/3D-TransUNet/tree/main) and [paper](https://arxiv.org/abs/2310.07781).
+
 
 ## Usage
 
@@ -43,6 +55,7 @@ python test.py --dataset Synapse --vit_name R50-ViT-B_16
 * [segmentation_models.pytorch](https://github.com/qubvel/segmentation_models.pytorch)
 
 ## Citations
+
 
 ```bibtex
 @article{chen2021transunet,
