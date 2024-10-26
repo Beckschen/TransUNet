@@ -1,8 +1,11 @@
 # TransUNet
-This repo holds code for [TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation](https://arxiv.org/pdf/2102.04306.pdf)
+
+This [repo](https://github.com/Mazharul-Hossain/TransUNet) holds code for [TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation](https://arxiv.org/pdf/2102.04306.pdf) forked originally from [Beckschen/TransUNet](https://github.com/Beckschen/TransUNet).
 
 ## 📰 News
+
 - [7/26/2024] TransUNet, which supports both 2D and 3D data and incorporates a Transformer encoder and decoder, has been featured in the journal Medical Image Analysis ([link](https://www.sciencedirect.com/science/article/pii/S1361841524002056)).
+
 ```bibtex
 @article{chen2024transunet,
   title={TransUNet: Rethinking the U-Net architecture design for medical image segmentation through the lens of transformers},
@@ -16,14 +19,15 @@ This repo holds code for [TransUNet: Transformers Make Strong Encoders for Medic
 
 - [10/15/2023] 🔥 3D version of TransUNet is out! Our 3D TransUNet surpasses nn-UNet with 88.11% Dice score on the BTCV dataset and outperforms the top-1 solution in the BraTs 2021 challenge and secure the second place in BraTs 2023 challenge. Please take a look at the [code](https://github.com/Beckschen/3D-TransUNet/tree/main) and [paper](https://arxiv.org/abs/2310.07781).
 
-
 ## Usage
 
 ### 1. Download Google pre-trained ViT models
-* [Get models in this link](https://console.cloud.google.com/storage/vit_models/): R50-ViT-B_16, ViT-B_16, ViT-L_16...
+
+- [Get models in this link](https://console.cloud.google.com/storage/vit_models/): R50-ViT-B_16, ViT-B_16, ViT-L_16...
+
 ```bash
 wget https://storage.googleapis.com/vit_models/imagenet21k/{MODEL_NAME}.npz &&
-mkdir ../model/vit_checkpoint/imagenet21k &&
+mkdir /project/mhssain9/model/vit_checkpoint/imagenet21k &&
 mv {MODEL_NAME}.npz ../model/vit_checkpoint/imagenet21k/{MODEL_NAME}.npz
 ```
 
@@ -34,6 +38,21 @@ All data are available so no need to send emails for data. Please use the [BTCV 
 ### 3. Environment
 
 Please prepare an environment with python=3.7, and then use the command "pip install -r requirements.txt" for the dependencies.
+
+#### Creating a new Conda Environment
+
+```bash
+conda create -n trans_u_env python=3.7
+#
+# To activate this environment, use
+#
+#     $ conda activate trans_u_env
+#
+# To deactivate an active environment, use
+#
+#     $ conda deactivate
+python -m pip install -r requirements.txt
+```
 
 ### 4. Train/Test
 
@@ -50,12 +69,12 @@ python test.py --dataset Synapse --vit_name R50-ViT-B_16
 ```
 
 ## Reference
-* [Google ViT](https://github.com/google-research/vision_transformer)
-* [ViT-pytorch](https://github.com/jeonsworld/ViT-pytorch)
-* [segmentation_models.pytorch](https://github.com/qubvel/segmentation_models.pytorch)
+
+- [Google ViT](https://github.com/google-research/vision_transformer)
+- [ViT-pytorch](https://github.com/jeonsworld/ViT-pytorch)
+- [segmentation_models.pytorch](https://github.com/qubvel/segmentation_models.pytorch)
 
 ## Citations
-
 
 ```bibtex
 @article{chen2021transunet,
