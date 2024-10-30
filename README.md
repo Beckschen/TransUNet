@@ -52,6 +52,9 @@ conda create -n trans_u_env python=3.7
 #
 #     $ conda deactivate
 python -m pip install -r requirements.txt
+
+# RuntimeError: cuDNN error: CUDNN_STATUS_EXECUTION_FAILED
+python -m pip install torch==1.4.0+cu92 torchvision==0.5.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html
 ```
 
 ### 4. Train/Test
