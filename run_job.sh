@@ -41,7 +41,7 @@ if [[ ! -d "$CHECKPOINT_DIR" ]]; then
 fi
 
 if [[ ! -f ${CHECKPOINT_DIR}/${MODEL_NAME}.npz ]]; then
-  wget https://storage.googleapis.com/vit_models/imagenet21k/${MODEL_NAME}.npz
+  wget "https://storage.googleapis.com/vit_models/imagenet21k/${MODEL_NAME}.npz"
   mv ${MODEL_NAME}.npz ${CHECKPOINT_DIR}
 fi
 

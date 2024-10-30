@@ -28,7 +28,7 @@ This [repo](https://github.com/Mazharul-Hossain/TransUNet) holds code for [Trans
 ```bash
 wget https://storage.googleapis.com/vit_models/imagenet21k/{MODEL_NAME}.npz &&
 mkdir /project/mhssain9/model/vit_checkpoint/imagenet21k &&
-mv {MODEL_NAME}.npz ../model/vit_checkpoint/imagenet21k/{MODEL_NAME}.npz
+mv {MODEL_NAME}.npz /project/mhssain9/model/vit_checkpoint/imagenet21k/{MODEL_NAME}.npz
 ```
 
 ### 2. Prepare data (All data are available!)
