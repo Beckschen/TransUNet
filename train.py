@@ -27,7 +27,7 @@ if __name__ == "__main__":
     dataset_name = args.dataset
     dataset_config = {
         "Synapse": {
-            "root_path": "../data/Synapse/train_npz",
+            "root_path": "/project/mhssain9/data/Synapse/train_npz",
             "list_dir": "./lists/lists_Synapse",
             "num_classes": 9,
         },

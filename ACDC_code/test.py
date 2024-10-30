@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--volume_path",
     type=str,
-    default="../data/Synapse/test_vol_h5",
+    default="/project/mhssain9/data/Synapse/test_vol_h5",
     help="root dir for validation volume data",
 )  # for acdc volume_path=root_dir
 parser.add_argument("--dataset", type=str, default="Synapse", help="experiment_name")
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     dataset_config = {
         "ACDC": {
             "Dataset": ACDC_dataset,  # datasets.dataset_acdc.BaseDataSets,
-            "volume_path": "../data/ACDC",
+            "volume_path": "/project/mhssain9/data/ACDC",
             "list_dir": None,
             "num_classes": 4,
             "z_spacing": 5,
@@ -148,7 +148,7 @@ if __name__ == "__main__":
         },
         "Synapse": {
             "Dataset": Synapse_dataset,
-            "volume_path": "../data/Synapse/test_vol_h5",
+            "volume_path": "/project/mhssain9/data/Synapse/test_vol_h5",
             "list_dir": "./lists/lists_Synapse",
             "num_classes": 9,
             "z_spacing": 1,

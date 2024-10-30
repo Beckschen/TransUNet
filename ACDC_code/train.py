@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--root_path",
     type=str,
-    default="../data/Synapse/train_npz",
+    default="/project/mhssain9/data/Synapse/train_npz",
     help="root dir for data",
 )
 parser.add_argument("--dataset", type=str, default="Synapse", help="experiment_name")
@@ -69,12 +69,12 @@ if __name__ == "__main__":
     dataset_config = {
         "ACDC": {
             "Dataset": ACDC_dataset,  # datasets.dataset_acdc.BaseDataSets,
-            "root_path": "../data/ACDC",
+            "root_path": "/project/mhssain9/data/ACDC",
             "list_dir": None,
             "num_classes": 4,
         },
         "Synapse": {
-            "root_path": "../data/Synapse/train_npz",
+            "root_path": "/project/mhssain9/data/Synapse/train_npz",
             "list_dir": "./lists/lists_Synapse",
             "num_classes": 9,
         },
