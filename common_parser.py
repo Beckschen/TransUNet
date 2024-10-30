@@ -21,7 +21,7 @@ def get_common_parser(state="training"):
     parser.add_argument(
         "--base_lr",
         type=float,
-        default=0.01,
+        default=0.005,
         help="segmentation network learning rate",
     )
     parser.add_argument(
@@ -30,7 +30,7 @@ def get_common_parser(state="training"):
         default=224,
         help="input patch size of network input",
     )
-    parser.add_argument("--batch_size", type=int, default=24, help="batch_size per gpu")
+    parser.add_argument("--batch_size", type=int, default=12, help="batch_size per gpu")
     parser.add_argument(
         "--n_skip",
         type=int,
