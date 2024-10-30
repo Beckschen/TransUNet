@@ -46,6 +46,6 @@ if [[ ! -f ${CHECKPOINT_DIR}/${MODEL_NAME}.npz ]]; then
 fi
 
 # Run the classification task using the dataset and subset variables
-CUDA_VISIBLE_DEVICES=0 python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME}
+python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 6 --base_lr 0.0025
 
 # python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME}
