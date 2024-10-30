@@ -24,6 +24,9 @@
 # scontrol show job [jobid]
 # scontrol update job [jobid] VARIABLE=value
 # scontrol update job 211385 gres=gpu:N
+
+# https://unix.stackexchange.com/a/646046/405424
+# du -h -d 1  /home/mhssain9/
 # ########################################
 DIR_NAME=/project/mhssain9
 MODEL_NAME=R50+ViT-B_16.npz
@@ -37,7 +40,7 @@ if [[ ! -d "$CHECKPOINT_DIR" ]]; then
 fi
 
 if [[ ! -f ${CHECKPOINT_DIR}/${MODEL_NAME}.npz ]]; then
-  wget https://storage.cloud.google.com/vit_models/imagenet21k/${MODEL_NAME}.npz
+  wget https://storage.googleapis.com/vit_models/imagenet21k/${MODEL_NAME}.npz
   mv ${MODEL_NAME}.npz ${CHECKPOINT_DIR}
 fi
 
