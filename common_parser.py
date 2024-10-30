@@ -38,14 +38,14 @@ def get_common_parser(state="training"):
         help="using number of skip-connect, default is num",
     )
     parser.add_argument(
-        "--vit_name", type=str, default="R50-ViT-B_16", help="select one vit model"
+        "--vit_name", type=str, default="R50+ViT-B_16", help="select one vit model"
     )
     parser.add_argument(
         "--vit_patches_size",
         type=int,
         default=16,
         help="vit_patches_size, default is 16",
-    )    
+    )
     parser.add_argument(
         "--max_epochs", type=int, default=150, help="maximum epoch number to train"
     )
