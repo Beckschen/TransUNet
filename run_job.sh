@@ -27,9 +27,10 @@
 
 # https://unix.stackexchange.com/a/646046/405424
 # du -h -d 1  /home/mhssain9/
+# du -h -d 1  /project/mhssain9/
 # ########################################
 DIR_NAME=/project/mhssain9
-MODEL_NAME=R50+ViT-B_16.npz
+MODEL_NAME=R50+ViT-B_16
 DATASET=Synapse
 
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
