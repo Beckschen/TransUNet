@@ -45,7 +45,10 @@ if [[ ! -f ${CHECKPOINT_DIR}/${MODEL_NAME}.npz ]]; then
   mv ${MODEL_NAME}.npz ${CHECKPOINT_DIR}
 fi
 
+nvcc -V
+nvidia-smi
+
 # Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 6 --base_lr 0.0025
+python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 3 --base_lr 0.00125
 
 # python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME}
