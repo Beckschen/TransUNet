@@ -16,6 +16,7 @@
 
 # sacct -o JobId%20,MaxVMSize,MaxRSS,NCPUS,ReqTRES%25,ReqMem --units=G -j [jobid]
 
+# scancel [jobid]
 # scancel -n TransUNet
 # sinfo -a
 # sprio -j [jobid]
@@ -48,7 +49,8 @@ fi
 # nvcc -V
 # nvidia-smi
 
-# Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01
+# # Run the classification task using the dataset and subset variables
+# python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01
 
-# python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME}
+# Evaluate the trained model
+python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01
