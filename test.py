@@ -19,7 +19,7 @@ def inference(args, model, test_save_path=None):
         base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir
     )
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
-    logging.info("{} test iterations per epoch".format(len(testloader)))
+    logging.info(f"{len(testloader)} test iterations per epoch")
     model.eval()
     metric_list = 0.0
     for i_batch, sampled_batch in tqdm(enumerate(testloader)):

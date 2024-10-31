@@ -49,6 +49,8 @@ fi
 # nvcc -V
 # nvidia-smi
 
+conda activate trans_u_env
+
 # # Run the classification task using the dataset and subset variables
 # python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01
 
