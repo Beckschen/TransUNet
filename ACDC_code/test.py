@@ -58,7 +58,7 @@ parser.add_argument(
 parser.add_argument(
     "--test_save_dir",
     type=str,
-    default="../predictions",
+    default="/project/mhssain9/predictions",
     help="saving prediction as nii!",
 )
 parser.add_argument(
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     logging.info(snapshot_name)
 
     if args.is_savenii:
-        args.test_save_dir = "../predictions"
+        args.test_save_dir = "/project/mhssain9/predictions"
         test_save_path = os.path.join(args.test_save_dir, args.exp, snapshot_name)
         os.makedirs(test_save_path, exist_ok=True)
     else:

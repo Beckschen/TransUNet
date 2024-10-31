@@ -96,7 +96,7 @@ def get_common_parser(state="training"):
         parser.add_argument(
             "--test_save_dir",
             type=str,
-            default="../predictions",
+            default="/project/mhssain9/predictions",
             help="saving prediction as nii!",
         )
 

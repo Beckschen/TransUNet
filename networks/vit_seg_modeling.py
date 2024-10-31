@@ -421,6 +421,8 @@ class DecoderCup(nn.Module):
 
 
 class VisionTransformer(nn.Module):
+    """Vision Transformer"""
+
     def __init__(
         self, config, img_size=224, num_classes=21843, zero_head=False, vis=False
     ):
@@ -440,7 +442,10 @@ class VisionTransformer(nn.Module):
     def forward(self, x):
         if x.size()[1] == 1:
             x = x.repeat(1, 3, 1, 1)
-        x, attn_weights, features = self.transformer(x)  # (B, n_patch, hidden)
+            
+        # x, attn_weights, features = self.transformer(x)  # (B, n_patch, hidden)
+        x, _, features = self.transformer(x)
+
         x = self.decoder(x, features)
         logits = self.segmentation_head(x)
         return logits

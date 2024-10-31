@@ -37,7 +37,7 @@ if __name__ == "__main__":
     args.list_dir = dataset_config[dataset_name]["list_dir"]
     args.is_pretrain = True
     args.exp = "TU_" + dataset_name + str(args.img_size)
-    snapshot_path = "/project/mhssain9/model/{}/{}".format(args.exp, "TU")
+    snapshot_path = f"/project/mhssain9/model/{args.exp}/TU"
     snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
     snapshot_path += "_" + args.vit_name
     snapshot_path = snapshot_path + "_skip" + str(args.n_skip)
