@@ -49,6 +49,8 @@ fi
 # nvcc -V
 # nvidia-smi
 
+# Activate Anaconda work environment for OpenDrift
+source /home/${USER}/.bashrc
 conda activate trans_u_env
 
 # # Run the classification task using the dataset and subset variables
