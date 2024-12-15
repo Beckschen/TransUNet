@@ -19,7 +19,7 @@ def inference(args, model, test_save_path=None):
         base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir
     )
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
-    logging.info(f"{len(testloader)} test iterations per epoch")
+    logging.info("%s test iterations per epoch" % len(testloader))
     model.eval()
     metric_list = 0.0
     for i_batch, sampled_batch in tqdm(enumerate(testloader)):
@@ -41,7 +41,7 @@ def inference(args, model, test_save_path=None):
         )
         metric_list += np.array(metric_i)
         logging.info(
-            "idx %d case %s mean_dice %f mean_hd95 %f"
+            "idx %s case %s mean_dice %s mean_hd95 %s"
             % (
                 i_batch,
                 case_name,
