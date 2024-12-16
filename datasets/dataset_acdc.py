@@ -49,9 +49,7 @@ class ACDC_dataset(Dataset):
                 )
                 self.sample_list.extend(new_data_list)
 
-        # if num is not None and self.split == "train":
-        #     self.sample_list = self.sample_list[:num]
-        print("total {} samples".format(len(self.sample_list)))
+        print(f"total {len(self.sample_list)} samples.")
 
     def _get_ids(self):
         all_cases_set = ["patient{:0>3}".format(i) for i in range(1, 101)]
@@ -69,24 +67,23 @@ class ACDC_dataset(Dataset):
     def __getitem__(self, idx):
         case = self.sample_list[idx]
 
-        # image = h5f['image'][:]
-        # label = h5f['label'][:]
-        # sample = {'image': image, 'label': label}
         if self.split == "train":
             h5f = h5py.File(
-                self._base_dir + "/ACDC_training_slices/{}".format(case), "r"
+                self._base_dir + f"/ACDC_training_slices/{case}", "r"
             )
-            image = h5f["image"][:]
-            label = h5f["label"][:]  # fix sup_type to label
-            sample = {"image": image, "label": label}
-            sample = self.transform(sample)
+
         else:
             h5f = h5py.File(
-                self._base_dir + "/ACDC_training_volumes/{}".format(case), "r"
+                self._base_dir + f"/ACDC_training_volumes/{case}", "r"
             )
-            image = h5f["image"][:]
-            label = h5f["label"][:]
-            sample = {"image": image, "label": label}
+        
+        image = h5f["image"][:]
+        label = h5f["label"][:]
+        sample = {"image": image, "label": label}
+
+        if self.split == "train":
+            sample = self.transform(sample)
+        
         sample["idx"] = idx
         sample["case_name"] = case.replace(".h5", "")
         return sample

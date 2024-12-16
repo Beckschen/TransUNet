@@ -24,7 +24,6 @@ def trainer_acdc(args, model, snapshot_path):
 
     db_train = ACDC_dataset(
         base_dir=args.root_path,
-        split="train",
         transform=transforms.Compose([RandomGenerator([args.img_size, args.img_size])]),
     )
     db_val = ACDC_dataset(base_dir=args.root_path, split="val")

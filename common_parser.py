@@ -111,7 +111,7 @@ def get_common_parser(state="training"):
 
 dataset_config = {
     "ACDC": {
-        "Dataset": ACDC_dataset,  # datasets.dataset_acdc.BaseDataSets,
+        "Dataset": ACDC_dataset,
         "volume_path": "/project/mhssain9/data/ACDC",
         "list_dir": None,
         "num_classes": 4,
