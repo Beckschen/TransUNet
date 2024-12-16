@@ -1,4 +1,10 @@
 import argparse
+from datasets import Synapse_dataset
+
+try:
+    from datasets import ACDC_dataset
+except:
+    pass
 
 
 def get_common_parser(state="training"):
@@ -101,3 +107,22 @@ def get_common_parser(state="training"):
         )
 
     return parser
+
+
+dataset_config = {
+    "ACDC": {
+        "Dataset": ACDC_dataset,  # datasets.dataset_acdc.BaseDataSets,
+        "volume_path": "/project/mhssain9/data/ACDC",
+        "list_dir": None,
+        "num_classes": 4,
+        "z_spacing": 5,
+        "info": "3D",
+    },
+    "Synapse": {
+        "Dataset": Synapse_dataset,
+        "volume_path": "/project/mhssain9/data/Synapse/test_vol_h5",
+        "list_dir": "./lists/lists_Synapse",
+        "num_classes": 9,
+        "z_spacing": 1,
+    },
+}

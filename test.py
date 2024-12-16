@@ -7,11 +7,10 @@ import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from datasets.dataset_synapse import Synapse_dataset
 from utils import test_single_volume
 from networks.vit_seg_modeling import VisionTransformer as ViT_seg
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
-from common_parser import get_common_parser
+from common_parser import get_common_parser, dataset_config
 
 
 def inference(args, model, test_save_path=None):
@@ -19,7 +18,7 @@ def inference(args, model, test_save_path=None):
         base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir
     )
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
-    logging.info("%s test iterations per epoch" % len(testloader))
+    logging.info("{} test iterations per epoch".format(len(testloader)))
     model.eval()
     metric_list = 0.0
     for i_batch, sampled_batch in tqdm(enumerate(testloader)):
@@ -41,25 +40,26 @@ def inference(args, model, test_save_path=None):
         )
         metric_list += np.array(metric_i)
         logging.info(
-            "idx %s case %s mean_dice %s mean_hd95 %s"
-            % (
-                i_batch,
-                case_name,
-                np.mean(metric_i, axis=0)[0],
-                np.mean(metric_i, axis=0)[1],
-            )
+            "idx %s case %s mean_dice %s mean_hd95 %s",
+            i_batch,
+            case_name,
+            np.mean(metric_i, axis=0)[0],
+            np.mean(metric_i, axis=0)[1],
         )
     metric_list = metric_list / len(db_test)
     for i in range(1, args.num_classes):
         logging.info(
-            "Mean class %d mean_dice %f mean_hd95 %f"
-            % (i, metric_list[i - 1][0], metric_list[i - 1][1])
+            "Mean class %d mean_dice %f mean_hd95 %f",
+            i,
+            metric_list[i - 1][0],
+            metric_list[i - 1][1],
         )
     performance = np.mean(metric_list, axis=0)[0]
     mean_hd95 = np.mean(metric_list, axis=0)[1]
     logging.info(
-        "Testing performance in best val model: mean_dice : %f mean_hd95 : %f"
-        % (performance, mean_hd95)
+        "Testing performance in best val model: mean_dice : %f mean_hd95 : %f",
+        performance,
+        mean_hd95,
     )
     return "Testing Finished!"
 
@@ -79,15 +79,6 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    dataset_config = {
-        "Synapse": {
-            "Dataset": Synapse_dataset,
-            "volume_path": "/project/mhssain9/data/Synapse/test_vol_h5",
-            "list_dir": "./lists/lists_Synapse",
-            "num_classes": 9,
-            "z_spacing": 1,
-        },
-    }
     dataset_name = args.dataset
     args.num_classes = dataset_config[dataset_name]["num_classes"]
     args.volume_path = dataset_config[dataset_name]["volume_path"]
@@ -98,7 +89,7 @@ if __name__ == "__main__":
 
     # name the same snapshot defined in train script!
     args.exp = "TU_" + dataset_name + str(args.img_size)
-    snapshot_path = f"/project/mhssain9/model/{args.exp}/TU"
+    snapshot_path = "/project/mhssain9/model/{}/{}".format(args.exp, "TU")
     snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
     snapshot_path += "_" + args.vit_name
     snapshot_path = snapshot_path + "_skip" + str(args.n_skip)

@@ -52,7 +52,6 @@ conda create -n trans_u_env python=3.7
 #
 #     $ conda deactivate
 conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c pytorch -c nvidia
-python -m pip install chardet
 python -m pip install -r requirements.txt
 ```
 

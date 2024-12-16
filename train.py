@@ -5,8 +5,8 @@ import torch
 import torch.backends.cudnn as cudnn
 from networks.vit_seg_modeling import VisionTransformer as ViT_seg
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
-from trainer import trainer_synapse
-from common_parser import get_common_parser
+from trainer import trainer_synapse, trainer_acdc
+from common_parser import get_common_parser, dataset_config
 
 
 if __name__ == "__main__":
@@ -25,13 +25,7 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
     dataset_name = args.dataset
-    dataset_config = {
-        "Synapse": {
-            "root_path": "/project/mhssain9/data/Synapse/train_npz",
-            "list_dir": "./lists/lists_Synapse",
-            "num_classes": 9,
-        },
-    }
+
     args.num_classes = dataset_config[dataset_name]["num_classes"]
     args.root_path = dataset_config[dataset_name]["root_path"]
     args.list_dir = dataset_config[dataset_name]["list_dir"]
@@ -84,5 +78,6 @@ if __name__ == "__main__":
 
     trainer = {
         "Synapse": trainer_synapse,
+        "ACDC": trainer_acdc,
     }
     trainer[dataset_name](args, net, snapshot_path)

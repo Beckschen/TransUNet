@@ -9,3 +9,4 @@ medpy
 SimpleITK
 scipy
 h5py
+chardet
