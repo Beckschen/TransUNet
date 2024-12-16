@@ -18,7 +18,7 @@ def inference(args, model, test_save_path=None):
         base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir
     )
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
-    logging.info("{} test iterations per epoch".format(len(testloader)))
+    logging.info("%s test iterations per epoch", len(testloader))
     model.eval()
     metric_list = 0.0
     for i_batch, sampled_batch in tqdm(enumerate(testloader)):
@@ -64,7 +64,7 @@ def inference(args, model, test_save_path=None):
     return "Testing Finished!"
 
 
-if __name__ == "__main__":
+def main():
     parser = get_common_parser(state="test")
     args = parser.parse_args()
 
@@ -160,3 +160,7 @@ if __name__ == "__main__":
     else:
         test_save_path = None
     inference(args, net, test_save_path)
+
+
+if __name__ == "__main__":
+    main()
