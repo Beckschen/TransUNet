@@ -92,6 +92,11 @@ if __name__ == "__main__":
     if args.vit_name.find('R50') != -1:
         config_vit.patches.grid = (int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
     net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
+    if not os.path.isfile(config_vit.pretrained_path):
+        raise FileNotFoundError(
+            f"Pretrained weights not found at {config_vit.pretrained_path}. "
+            "Please download the ViT checkpoint as described in README.md"
+        )
     net.load_from(weights=np.load(config_vit.pretrained_path))
 
 
