@@ -7,7 +7,7 @@ import torch
 import torch.backends.cudnn as cudnn
 from networks.vit_seg_modeling import VisionTransformer as ViT_seg
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
-from trainer import trainer_synapse
+from trainer import trainer_synapse, trainer_cbis
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str,
@@ -61,6 +61,11 @@ if __name__ == "__main__":
             'list_dir': './lists/lists_Synapse',
             'num_classes': 9,
         },
+        'CBIS': {
+            'root_path': '/data/xudosong/Transfer_Scratch/CBIS_max_last_withAug3_noise/CBIS_pre',
+            'list_dir': '',
+            'num_classes': 2,
+        },
     }
     args.num_classes = dataset_config[dataset_name]['num_classes']
     args.root_path = dataset_config[dataset_name]['root_path']
@@ -89,5 +94,10 @@ if __name__ == "__main__":
     net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
     net.load_from(weights=np.load(config_vit.pretrained_path))
 
-    trainer = {'Synapse': trainer_synapse,}
+
+    trainer = {
+        'Synapse': trainer_synapse,
+        'CBIS': trainer_cbis,
+    }
     trainer[dataset_name](args, net, snapshot_path)
+

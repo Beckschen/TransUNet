@@ -10,6 +10,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from datasets.dataset_synapse import Synapse_dataset
+from datasets.dataset_cbis import CBISDataset
 from utils import test_single_volume
 from networks.vit_seg_modeling import VisionTransformer as ViT_seg
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
@@ -83,6 +84,13 @@ if __name__ == "__main__":
             'volume_path': '../data/Synapse/test_vol_h5',
             'list_dir': './lists/lists_Synapse',
             'num_classes': 9,
+            'z_spacing': 1,
+        },
+        'CBIS': {
+            'Dataset': CBISDataset,
+            'volume_path': '/data/xudosong/Transfer_Scratch/CBIS_max_last_withAug3_noise/CBIS_pre',
+            'list_dir': '',
+            'num_classes': 2,
             'z_spacing': 1,
         },
     }

@@ -49,6 +49,18 @@ CUDA_VISIBLE_DEVICES=0 python train.py --dataset Synapse --vit_name R50-ViT-B_16
 python test.py --dataset Synapse --vit_name R50-ViT-B_16
 ```
 
+- Train on the CBIS-DDSM dataset located at `/data/xudosong/Transfer_Scratch/CBIS_max_last_withAug3_noise/CBIS_pre`:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python train.py --dataset CBIS --vit_name R50-ViT-B_16 --img_size 256
+```
+
+- Test on the CBIS-DDSM dataset:
+
+```bash
+python test.py --dataset CBIS --vit_name R50-ViT-B_16 --img_size 256
+```
+
 ## Reference
 * [Google ViT](https://github.com/google-research/vision_transformer)
 * [ViT-pytorch](https://github.com/jeonsworld/ViT-pytorch)
