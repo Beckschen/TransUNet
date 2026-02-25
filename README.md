@@ -28,9 +28,7 @@ mv {MODEL_NAME}.npz ../model/vit_checkpoint/imagenet21k/{MODEL_NAME}.npz
 ```
 
 [Update 2026/02] The official ViT weights appear to have expired. 
-You can still download a copy from the [project folder](https://drive.google.com/drive/folders/1ACJEoTp-uqfFJ73qS3eUObQh52nGuzCd?usp=sharing) (same to BTCV preprocessed data).
-
-After extraction, find the file at:
+You can still download a copy from the [project folder](https://drive.google.com/drive/folders/1ACJEoTp-uqfFJ73qS3eUObQh52nGuzCd?usp=sharing) (same to BTCV preprocessed data). After extraction, find the file at:
 `../model/vit_checkpoint/imagenet21k/R50+ViT-B_16.npz`
 
 ### 2. Prepare data (All data are available!)
